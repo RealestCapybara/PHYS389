@@ -86,7 +86,7 @@ Quaternion cannot be summed with non-Quaternion object")
 
     def conjugate(self):
         """Returns the conjugate of the Quaterion object"""
-        return Quat(self.q0, -self.q1, self.q2, -self.q3)
+        return Quat(self.q0, -self.q1, -self.q2, -self.q3)
 
 class Pend():
     """Pendulum Object.
