@@ -62,7 +62,7 @@ Quaternion cannot be summed with non-Quaternion object")
         return f"Quat({self.q0}, {self.q1}, {self.q2}, {self.q3})"
 
     def __format__(self, spec):
-        return str(Quart(format(self.q0, spec), format(self.q1, spec),
+        return str(Quat(format(self.q0, spec), format(self.q1, spec),
                      format(self.q2, spec), format(self.q3, spec)))
 
     def __getitem__(self, key):
@@ -133,13 +133,18 @@ class Pend():
         q = q * (1/(2*posA**2))
         q = q + Quat(1-(qA**2/(8*posA**4)), 0, 0, 0)
 
+        #Quaternion is then normalised to ensure that it is a unitary
+        #transformation and doesn't modify the length of the pendulum
+        q = q * (1/abs(q))
+
         #once the rotation quaternion is calculated, all that is needed to
         #apply it is simple quaternion multiplication
         self.pos = q * pos * q.conjugate()
 
 if __name__ == "__main__":
     X = Pend(pos=Quat(0, 0, 0, 10))
-    Delta = Quat(0, 0.1, 0.1, 0.0)
-    X.rotate(Delta)
-    print(X.pos)
-    print(abs(X.pos))
+    for i in range(10**6):
+        Delta = Quat(0, 0.1**2, 0.1**2, 0.0)
+        X.rotate(Delta)
+        print(f"{X.pos:.5f}")
+        print(abs(X.pos))
