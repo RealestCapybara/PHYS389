@@ -84,6 +84,11 @@ Quaternion cannot be summed with non-Quaternion object")
         for val in [self.q0, self.q1, self.q2, self.q3]:
             yield val
 
+    def __matmul__(self, other):
+        """Encodes a 'dot product' functionality to quaternions."""
+        return self.q0 * other.q0 + self.q1 * other.q1 + self.q2 * other.q2 +
+                    self.q3 * other.q3
+
     def conjugate(self):
         """Returns the conjugate of the Quaterion object"""
         return Quat(self.q0, -self.q1, -self.q2, -self.q3)
@@ -108,6 +113,9 @@ class Pend():
         self.vel = vel
         self.acc = acc
         self.mass = mass
+        self.parent = None
+        self.child = None
+        self.sibling = None
 
     def rotate(self, delta):
         """Rotates the position by a given Delta (change in position)
@@ -141,10 +149,56 @@ class Pend():
         #apply it is simple quaternion multiplication
         self.pos = q * pos * q.conjugate()
 
+    def TensionOnParent(self, inplace=True):
+        x = self.pos
+        a = self.acc
+        T = (x @ a)/(abs(x)**2) * x
+        if inplace == True:
+            self.parent.acc += T
+        else:
+            return T
+
+class GenList():
+    def __init__(self, root):
+        if type(root) != Pend:
+            raise TypeError("root must be Pendulum")
+
+        currentGen = 0
+        List = [[root]]
+
+        while True:
+            NextGen = []
+            for pend in List[currentGen]:
+                child = pend.child
+                while child is not None:
+                    NextGen.append(child)
+                    child = child.sibling
+            if len(NextGen) == 0:
+                break
+            else:
+                List.append(NextGen)
+                currentGen += 1
+
+        self._List = np.array(List)
+        self._rList = np.array(List.reverse())
+
+    def __iter__(self):
+        return self._List
+    def __getitem__(self, idx):
+        return self._List[idx]
+    def __str__(self):
+        return f"GenList({str(self._List)})"
+    def __repr__(self):
+        return f"GenList({repr(self._List)})"
+
+    def UpdateAcc(self):
+        for Gen in self._rList:
+            for P in Gen:
+                P.acc = Quat(0, 0, 0, self.mass * 9.81)
+
+        for Gen in self._rList:
+            for P in Gen:
+                P.TensionOnParent()
+
 if __name__ == "__main__":
-    X = Pend(pos=Quat(0, 0, 0, 10))
-    for i in range(10**6):
-        Delta = Quat(0, 0.1**2, 0.1**2, 0.0)
-        X.rotate(Delta)
-        print(f"{X.pos:.5f}")
-        print(abs(X.pos))
+    pass
