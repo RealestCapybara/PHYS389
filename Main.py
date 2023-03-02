@@ -98,6 +98,26 @@ class Pendulum():
                              -l*np.cos(theta)*np.sin(phi),
                              l*np.cos(theta)*np.cos(phi)])
 
+    def drdT(self):
+        l = self.pos[0]
+        theta = self.pos[1]
+        phi = self.pos[2]
+
+        if self.zPolar:
+            return l * np.sin(theta)
+        else:
+            return l * np.cos(theta) * np.sin(phi)
+
+    def drdP(self):
+        l = self.pos[0]
+        theta = self.pos[1]
+        phi = self.pos[2]
+
+        if self.zPolar:
+            return 0
+        else:
+            return l * np.sin(theta) * np.cos(phi)
+
     def fixCoord(self):
         if self.pos[1] >= (np.pi/4):
             return None
@@ -143,6 +163,7 @@ class Pendulum():
             return np.array([l*np.cos(theta),
                              l*np.sin(theta)*np.cos(phi),
                              l*np.sin(theta),np.sin(phi)])
+
 class Mat():
     @staticmethod
     def AElement(q1, q2):
