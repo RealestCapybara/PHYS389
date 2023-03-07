@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sp
 from copy import deepcopy
+import matplotlib.pyplot as plt
+import matplotlib.animation as ani
+from mpl_tookkits import Axes3D
 
 class Pendulum():
     def __init__(self, length, pos, vel, acc, mass, zPolar=True):
@@ -169,8 +172,8 @@ class Pendulum():
         self.pos[0] = theta2
         self.pos[1] = phi2
 
-        self.vel[0] = (1/self.length)**2 * v * self.dT()
-        self.vel[1] = (1/(self.length * np.sin(theta2)))**2 *v*self.dP()
+        self.vel[0] = (1/self.length)**2 * v @ self.dT()
+        self.vel[1] = (1/(self.length * np.sin(theta2)))**2 * v@self.dP()
 
         self.zPolar = not self.zPolar
         return True
@@ -179,14 +182,14 @@ class Pendulum():
         l = self.length
         theta = self.pos[0]
         phi = self.pos[1]
-        if self.zPolar():
+        if self.zPolar:
             return np.array([l*np.sin(theta)*np.cos(phi),
                              l*np.sin(theta)*np.sin(phi),
                              -l*np.cos(theta)])
         else:
             return np.array([l*np.cos(theta),
                              l*np.sin(theta)*np.cos(phi),
-                             l*np.sin(theta),np.sin(phi)])
+                             l*np.sin(theta)*np.sin(phi)])
 
 class Mat():
     def __init__(self, qList, g):
@@ -204,10 +207,15 @@ class Mat():
         return self.__mul__(other)
 
     def __add__(self, other):
-        if type(other) is not Mat:
+        if type(other) is Mat:
+            return Mat(qList = [q + p for q, p in
+                                zip(self.qList,other.qList)], g = self.g)
+        elif not other:
+            return self
+        else:
             raise TypeError("Mat can only be added to other Mat objects")
-        return Mat(qList = [q + p for q, p in zip(self.qList, other.qList)],
-                   g = self.g)
+    def __radd__(self, other):
+        return self.__add__(other)
 
     @staticmethod
     def _AElement(q1, q2):
@@ -220,8 +228,8 @@ class Mat():
     def _BElement(q1, q2):
         if type(q1) is not Pendulum or type(q2) is not Pendulum:
             raise TypeError("arguments must be of type Pendulum")
-        return np.array([[q2.dT2()@q1.dT(),q2.dTP()@q1.dT(),q2.dP2()@q1.dT(),
-                          q2.dT2()@q1.dP(),q2.dTP()@q1.dP(),q2.dP2()@q1.dP()]])
+        return np.array([[q2.dT2()@q1.dT(),q2.dTP()@q1.dT(),q2.dP2()@q1.dT()],
+                         [q2.dT2()@q1.dP(),q2.dTP()@q1.dP(),q2.dP2()@q1.dP()]])
 
     def Matrices(self):
         qList = self.qList
@@ -246,8 +254,8 @@ class Mat():
         qList = self.qList
         array = []
         massList = [q.mass for q in qList]
-        for q, i in enumerate(qList):
-            M = sum(MassList[i:])
+        for i, q in enumerate(qList):
+            M = sum(massList[i:])
             array.append(g*M*q.drdT())
             array.append(g*M*q.drdP())
         return np.array(array)
@@ -262,9 +270,9 @@ class Mat():
         A, B = Matr.Matrices()
         V3 = Matr.GVec()
 
-        V2 = [f(q) for q in qList for f in (lambda q: q.dT()**2,
-                                            lambda q: q.dT()*q.dP(),
-                                            lambda q: q.dP()**2)]
+        V2 = [f(q) for q in qList for f in (lambda q: q.vel[0]**2,
+                                            lambda q: q.vel[0]*q.vel[1],
+                                            lambda q: q.vel[1]**2)]
 
         V2 = np.array(V2)
 
@@ -302,14 +310,12 @@ class Mat():
             raise ValueError("RKmatrix must be a matrix")
 
         if len(RKmatrix[-1]) != (len(weights)-1):
-            raise ValueError("length of weights must be one more than last row of RKmatrix")
+            raise ValueError(
+                "length of weights must be one more than last row of RKmatrix")
 
-        if len(RKmatrix) != (len(RKmatrix[-1])-1):
-            raise ValueError("number of rows of RKmatrix must be one less than number of entries in last row")
-
-        for i, v in enumerate(RKmatrix):
-            if len(v) != i+1:
-                raise ValueError("RKmatrix must be triangular (each row has one more element)")
+        if len(RKmatrix) != len(RKmatrix[-1]):
+            raise ValueError(
+                "number of rows and cols of RKmatrix must be equal")
 
         if round(sum(weights), 10) != 1.0:
             raise ValueError("sum of weights must be 1")
@@ -317,20 +323,31 @@ class Mat():
         k = [function(self)]
 
         for i, v in enumerate(RKmatrix):
-            delta = sum([j*a for j, a in zip(k, v)]) * timeDelta
-
+            delta = sum([j*a for j, a in zip(k, v[:i+1])]) * timeDelta
             k.append(function(self + delta))
 
         self += timeDelta * sum([b * j for b, j in zip(weights, k)])
 
     def RK4(self, timeDelta):
-        RKmatrix = np.array([[0.5],[0, 0.5],[0, 0, 1]])
+        RKmatrix = np.array([[0.5,0,0], [0,0.5,0], [0,0,1]])
         weights = np.array([1/6, 1/3, 1/3, 1/6])
         self.RK(timeDelta, weights, RKmatrix, self._Func)
 
+    def fixCoords(self):
+        qList = self.qList
+        for q in qList:
+            q.fixCoord()
+        self.qList = qList
 
 if __name__ == '__main__':
-    q1 = Pendulum(pos=[10, 0, 0], vel=[0,0], acc=[0,0], mass=1)
-    q2 = Pendulum(pos=[10, 0, 0], vel=[0,0], acc=[0,0], mass=1)
-    q3 = Pendulum(pos=[10, np.pi, 0], vel=[0,0], acc=[0,0], mass=1)
-    print(Mat.Matrix([q1,q2, q3], 'B'))
+    q1 = Pendulum(length=10, pos=[0, 0], vel=[0,0], acc=[0,0], mass=1)
+    #q2 = Pendulum(length=10, pos=[0, 0], vel=[0,0], acc=[0,0], mass=1)
+    q2 = Pendulum(length=10, pos=[np.pi, 0], vel=[0,0], acc=[0,0], mass=1)
+    Matr = Mat(qList=[q1,q2], g=9.81)
+    for i in range(600):
+        Matr.fixCoords()
+        Matr.RK4(timeDelta=0.1)
+        print(", ".join([f"q{i}: {v.toCartesian()}" for i, v in
+                         enumerate(Matr.qList)]))
+
+
