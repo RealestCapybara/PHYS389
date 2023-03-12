@@ -4,7 +4,6 @@ import scipy as sp
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import matplotlib.animation as ani
-from mpl_tookkits import Axes3D
 
 class Pendulum():
     def __init__(self, length, pos, vel, acc, mass, zPolar=True):
@@ -49,11 +48,17 @@ class Pendulum():
         if type(other) is not Pendulum:
             raise TypeError(
 "Pendulum object can only be added to other Pendulum objects")
-        if self.zPolar != other.zPolar:
-            other.fixCoord(force=True)
-        return Pendulum(pos=self.pos+other.pos,vel=self.vel+other.vel,
+        #self.fixCoord()
+        #other.fixCoord()
+        #if self.zPolar != other.zPolar:
+        #    other.fixCoord(force=True)
+
+        Q = Pendulum(pos=self.pos+other.pos,vel=self.vel+other.vel,
                         acc=self.acc+other.acc,mass=self.mass,
                         length=self.length,zPolar=self.zPolar)
+
+        #Q.fixCoord()
+        return Q
 
     def dT(self):
         l = self.length
@@ -144,12 +149,22 @@ class Pendulum():
         else:
             return l * np.sin(theta) * np.cos(phi)
 
-    def fixCoord(self, force=False):
-        if self.pos[0] >= (np.pi/4) and not force:
-            return False
+    def fixCoord(self, release=True):
 
         theta = deepcopy(self.pos[0])
         phi = deepcopy(self.pos[1])
+
+        phi = np.pi * ((phi/np.pi)%2)
+        theta = np.pi * ((theta/np.pi)%2)
+
+        if theta > np.pi:
+            theta = 2*np.pi - theta
+            phi += np.pi
+            phi = np.pi * ((phi/np.pi)%2)
+
+        if abs(np.sin(theta)) > 0.5:
+            self.pos = np.array([theta, phi])
+            return False
 
         cosTheta = np.cos(theta)
         sinTheta = np.sin(theta)
@@ -158,25 +173,51 @@ class Pendulum():
 
         thetadot = deepcopy(self.vel[0])
         phidot = deepcopy(self.vel[1])
-        v = thetadot * self.dT() + phidot * self.dP()
+        oldDT = deepcopy(self.dT())
+        oldDP = deepcopy(self.dP())
+        v = thetadot * oldDT + phidot * oldDP
 
         if self.zPolar:
             phi2 = np.arctan2(-cosTheta, sinTheta * sinPhi)
-            theta2 = np.arctan2(np.sqrt(sinTheta**2 * sinPhi**2 + cosTheta**2),
-                                sinTheta * cosPhi)
+            theta2 = np.arctan2(np.sqrt(sinTheta**2*sinPhi**2+cosTheta**2),
+                                sinTheta*cosPhi)
+
+            #thetadot2 = (phidot*sinTheta*sinPhi -
+            #             thetadot*cosTheta*cosPhi)/np.sin(theta2)
+
+            #phidot2 = -thetadot2 + thetadot*sinTheta/(np.sin(phi2)*\
+            #                                          np.cos(theta2))
         else:
-            phi2 = np.arctan2(sinTheta*cosPhi, cosTheta)
+            phi2 = np.arctan2(sinTheta * cosPhi, cosTheta)
             theta2 = np.arctan2(np.sqrt(cosTheta**2 + sinTheta**2 * cosPhi**2),
-                                -sinTheta * sinPhi)
+                                -sinTheta*sinPhi)
+
+            #thetadot2 = (phidot+thetadot)*sinPhi*cosTheta/np.sin(theta2)
+
+            #phidot2 = (thetadot2*np.cos(theta2)*np.cos(phi2) +\
+            #           thetadot*sinTheta)/(np.sin(theta2)*np.sin(phi2))
+
+        phi2 = np.pi * ((phi2/np.pi)%2)
+        theta2 = np.pi * ((theta2/np.pi)%2)
 
         self.pos[0] = theta2
         self.pos[1] = phi2
 
+        self.zPolar = not self.zPolar
+
+        #self.vel[0] = thetadot2
+        #self.vel[1] = phidot2
         self.vel[0] = (1/self.length)**2 * v @ self.dT()
         self.vel[1] = (1/(self.length * np.sin(theta2)))**2 * v@self.dP()
 
-        self.zPolar = not self.zPolar
-        return True
+        if release:
+            print(v)
+            print(self.vel[0]*self.dT()+self.vel[1]*self.dP())
+            print(v-self.vel[0]*self.dT()-self.vel[1]*self.dP())
+            print(np.linalg.norm(v)-np.linalg.norm(self.vel[0]*self.dT()+
+                                                   self.vel[1]*self.dP()))
+
+        return True and release
 
     def toCartesian(self):
         l = self.length
@@ -216,6 +257,13 @@ class Mat():
             raise TypeError("Mat can only be added to other Mat objects")
     def __radd__(self, other):
         return self.__add__(other)
+
+    def __str__(self):
+        return ",\n         ".join([f"\
+q{i}: pos=({v.pos[0]/np.pi:.4f} pi, {v.pos[1]/np.pi:.4f} pi) \
+vel=({v.vel[0]/np.pi:.4f} pi, {v.vel[1]/np.pi:.4f} pi) \
+pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
+                                    for i, v in enumerate(self.qList)])
 
     @staticmethod
     def _AElement(q1, q2):
@@ -289,7 +337,9 @@ class Mat():
                              acc=[0, 0], length=q.length,
                              mass=q.mass) for i, q in enumerate(qList)]
 
-        return Mat(qList = newQList, g=g)
+        M = Mat(qList = newQList, g=g)
+        M.fixCoords(release=False)
+        return M
 
     def RK(self, timeDelta, weights, RKmatrix, function):
         try:
@@ -321,33 +371,108 @@ class Mat():
             raise ValueError("sum of weights must be 1")
 
         k = [function(self)]
-
+        x = deepcopy(self)
         for i, v in enumerate(RKmatrix):
             delta = sum([j*a for j, a in zip(k, v[:i+1])]) * timeDelta
-            k.append(function(self + delta))
-
-        self += timeDelta * sum([b * j for b, j in zip(weights, k)])
+            k.append(function(x + delta))
+        d = timeDelta * sum([b * j for b, j in zip(weights, k)])
+        self.qList = (x + d).qList
 
     def RK4(self, timeDelta):
         RKmatrix = np.array([[0.5,0,0], [0,0.5,0], [0,0,1]])
         weights = np.array([1/6, 1/3, 1/3, 1/6])
         self.RK(timeDelta, weights, RKmatrix, self._Func)
 
-    def fixCoords(self):
-        qList = self.qList
+    def fixCoords(self, release=True):
+        qList = deepcopy(self.qList)
+        val = True
         for q in qList:
-            q.fixCoord()
+            val = val and q.fixCoord(release)
         self.qList = qList
+        return val
 
 if __name__ == '__main__':
-    q1 = Pendulum(length=10, pos=[0, 0], vel=[0,0], acc=[0,0], mass=1)
-    #q2 = Pendulum(length=10, pos=[0, 0], vel=[0,0], acc=[0,0], mass=1)
-    q2 = Pendulum(length=10, pos=[np.pi, 0], vel=[0,0], acc=[0,0], mass=1)
-    Matr = Mat(qList=[q1,q2], g=9.81)
-    for i in range(600):
-        Matr.fixCoords()
-        Matr.RK4(timeDelta=0.1)
-        print(", ".join([f"q{i}: {v.toCartesian()}" for i, v in
-                         enumerate(Matr.qList)]))
+    q1 = Pendulum(length=10, pos=[np.pi/2, 0], vel=[0,0], acc=[0,0], mass=1)
+    q2 = Pendulum(length=10, pos=[0.1, 0.1], vel=[0,0], acc=[0,0], mass=1)
+    q3 = Pendulum(length=10, pos=[np.pi, 0.1], vel=[0,0], acc=[0,0], mass=1)
+    Matr = Mat(qList=[q1], g=-9.81)
+    x1 = []
+    x2 = []
+    y1 = []
+    y2 = []
+    z1 = []
+    z2 = []
+    x3 = []
+    y3 = []
+    z3 = []
+    theta = []
+    phi = []
+    thetadot = []
+    phidot = []
+    whichPole = []
+    sines = []
+    sines1 = []
+    vx = []
+    vy = []
+    vz = []
+    vels = []
+    poss = []
+    for i in range(4000):
+        sines1.append(abs(np.sin(Matr.qList[0].pos[0]))*10)
 
+        whichPole.append((lambda x: 10 if x else -10)(Matr.qList[0].zPolar))
+        q = Matr.qList[0]
+        pos = q.toCartesian()
+        x1.append(pos[0])
+        y1.append(pos[1])
+        z1.append(pos[2])
+
+        vel = q.vel[0]*q.dT() + q.vel[1]*q.dP()
+        v = (1/q.length)**2 *vel @ q.dT()
+        vx.append(vel[0])
+        vy.append(vel[1])
+        vz.append(vel[2])
+        vels.append(q.vel)
+        poss.append(q.pos)
+        #z2.append(Matr.qList[1].toCartesian()[2])
+        #x3.append(Matr.qList[2].toCartesian()[0])
+        #y3.append(Matr.qList[2].toCartesian()[1])
+        #z3.append(Matr.qList[2].toCartesian()[2])
+        theta.append(Matr.qList[0].pos[0]*5/np.pi)
+        phi.append(Matr.qList[0].pos[1]*5/np.pi)
+        thetadot.append(Matr.qList[0].vel[0]*5/np.pi)
+        phidot.append(Matr.qList[0].vel[1]*5/np.pi)
+        #sines.append(abs(np.sin(Matr.qList[0].pos[0]))*10)
+        Matr.fixCoords()
+        #if not val:
+        #    break
+        Matr.RK4(timeDelta=0.1**3)
+        Matr.fixCoords()
+
+    t = np.arange(0, 4000*0.1**3, 0.1**3)
+
+    #plt.plot(t, x1, label="x1")
+    #plt.plot(t, x2, label="x2")
+    #plt.plot(t, y1, label="y1")
+    #plt.plot(t, y2, label="y2")
+    #plt.plot(t, z1, label="z1")
+    #plt.plot(t, z2, label="z2")
+
+    #plt.plot(t, vx, label="vx")
+    #plt.plot(t, vy, label="vy")
+    #plt.plot(t, vz, label="vz")
+    #plt.plot(t, x3, label="x3")
+    #plt.plot(t, y3, label="y3")
+    #plt.plot(t, z3, label="z3")
+    plt.plot(t, whichPole)
+    plt.plot(t, [i[0]*5/np.pi for i in poss], label="theta")
+    plt.plot(t, [i[1]*5/np.pi for i in poss], label="phi")
+    plt.plot(t, [i[0]*5/np.pi for i in vels], label="theta angular velocity")
+    plt.plot(t, [i[1]*5/np.pi for i in vels], label="phi angular velocity")
+    plt.plot(t, [i[0]*i[1]*(5/np.pi)**2 for i in vels], label="phidot * thetadot")
+    plt.plot(t, [(i[0]*5/np.pi)**2 for i in vels], label="thetadot ** 2")
+    plt.plot(t, [(i[1]*5/np.pi)**2 for i in vels], label="phidot ** 2")
+    #plt.plot(t, sines1, label="sines")
+    plt.legend()
+    plt.show()
 
