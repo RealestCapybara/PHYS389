@@ -338,11 +338,11 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
                              mass=q.mass) for i, q in enumerate(qList)]
 
         M = Mat(qList = newQList, g=g)
-        M.fixCoords(release=False)
+        #M.fixCoords(release=False)
         return M
 
     def RK(self, timeDelta, weights, RKmatrix, function):
-        try:
+        '''try:
             weights = np.array(weights)
             RKmatrix = np.array(RKmatrix)
         except TypeError:
@@ -356,7 +356,7 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         if not callable(function):
             raise TypeError("function must be a function")
 
-        if RKmatrix.ndim != 2:
+        if RKmatrix.ndim != 2 and len(RKmatrix) !=0:
             raise ValueError("RKmatrix must be a matrix")
 
         if len(RKmatrix[-1]) != (len(weights)-1):
@@ -368,7 +368,7 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
                 "number of rows and cols of RKmatrix must be equal")
 
         if round(sum(weights), 10) != 1.0:
-            raise ValueError("sum of weights must be 1")
+            raise ValueError("sum of weights must be 1")'''
 
         k = [function(self)]
         x = deepcopy(self)
@@ -387,92 +387,104 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         qList = deepcopy(self.qList)
         val = True
         for q in qList:
-            val = val and q.fixCoord(release)
+            vi = q.fixCoord(release)
+            val = val and vi
         self.qList = qList
         return val
 
 if __name__ == '__main__':
-    q1 = Pendulum(length=10, pos=[np.pi/2, 0], vel=[0,0], acc=[0,0], mass=1)
+    q1 = Pendulum(length=10, pos=[np.pi/2, 0], vel=[-np.pi,2.8887156], acc=[0,0], mass=1)
     q2 = Pendulum(length=10, pos=[0.1, 0.1], vel=[0,0], acc=[0,0], mass=1)
     q3 = Pendulum(length=10, pos=[np.pi, 0.1], vel=[0,0], acc=[0,0], mass=1)
-    Matr = Mat(qList=[q1], g=-9.81)
+    Matr = Mat(qList=[q1], g=9.81)
     x1 = []
-    x2 = []
     y1 = []
-    y2 = []
     z1 = []
+    x2 = []
+    y2 = []
     z2 = []
-    x3 = []
-    y3 = []
-    z3 = []
     theta = []
     phi = []
     thetadot = []
     phidot = []
-    whichPole = []
-    sines = []
-    sines1 = []
+    theta2 = []
+    phi2 = []
+    theta2dot = []
+    phi2dot = []
+    whichPole1 = []
+    whichPole2 = []
     vx = []
     vy = []
     vz = []
     vels = []
     poss = []
-    for i in range(4000):
-        sines1.append(abs(np.sin(Matr.qList[0].pos[0]))*10)
+    for i in range(1000):
 
-        whichPole.append((lambda x: 10 if x else -10)(Matr.qList[0].zPolar))
-        q = Matr.qList[0]
-        pos = q.toCartesian()
-        x1.append(pos[0])
-        y1.append(pos[1])
-        z1.append(pos[2])
+        whichPole1.append((lambda x: 10 if x else -10)(Matr.qList[0].zPolar))
+        #whichPole2.append((lambda x: 10 if x else -10)(Matr.qList[1].zPolar))
+        q1 = Matr.qList[0]
+        pos1 = q1.toCartesian()
+        #q2 = Matr.qList[1]
+        #pos2 = q2.toCartesian()
 
-        vel = q.vel[0]*q.dT() + q.vel[1]*q.dP()
-        v = (1/q.length)**2 *vel @ q.dT()
-        vx.append(vel[0])
-        vy.append(vel[1])
-        vz.append(vel[2])
-        vels.append(q.vel)
-        poss.append(q.pos)
-        #z2.append(Matr.qList[1].toCartesian()[2])
-        #x3.append(Matr.qList[2].toCartesian()[0])
-        #y3.append(Matr.qList[2].toCartesian()[1])
-        #z3.append(Matr.qList[2].toCartesian()[2])
-        theta.append(Matr.qList[0].pos[0]*5/np.pi)
-        phi.append(Matr.qList[0].pos[1]*5/np.pi)
-        thetadot.append(Matr.qList[0].vel[0]*5/np.pi)
-        phidot.append(Matr.qList[0].vel[1]*5/np.pi)
-        #sines.append(abs(np.sin(Matr.qList[0].pos[0]))*10)
+        x1.append(pos1[0])
+        y1.append(pos1[1])
+        z1.append(pos1[2])
+
+        #x2.append(pos2[0])
+        #y2.append(pos2[1])
+        #z2.append(pos2[2])
+
+        #vel = q.vel[0]*q.dT() + q.vel[1]*q.dP()
+        #v = (1/q.length)**2 *vel @ q.dT()
+        #vx.append(vel[0])
+        #vy.append(vel[1])
+        #vz.append(vel[2])
+        #vels.append(q.vel)
+        #poss.append(q.pos)
+        theta.append(Matr.qList[0].pos[0])
+        phi.append(Matr.qList[0].pos[1])
+        thetadot.append(Matr.qList[0].vel[0])
+        phidot.append(Matr.qList[0].vel[1])
+        #theta2.append(Matr.qList[1].pos[0])
+        #phi2.append(Matr.qList[1].pos[1])
+        #theta2dot.append(Matr.qList[1].vel[0])
+        #phi2dot.append(Matr.qList[1].vel[1])
         Matr.fixCoords()
-        #if not val:
-        #    break
-        Matr.RK4(timeDelta=0.1**3)
+        #Matr = Matr + 0.1**3 * Mat._Func(Matr)
+        #Matr.RK(0.1**3, [1], np.array([]), Mat._Func)
+        Matr.RK4(timeDelta=0.1**2)
         Matr.fixCoords()
 
-    t = np.arange(0, 4000*0.1**3, 0.1**3)
+    t = np.arange(0, 1000*0.1**2, 0.1**2)
 
-    #plt.plot(t, x1, label="x1")
+    plt.plot(t, x1, label="x1")
+    plt.plot(t, y1, label="y1")
+    plt.plot(t, z1, label="z1")
+
     #plt.plot(t, x2, label="x2")
-    #plt.plot(t, y1, label="y1")
     #plt.plot(t, y2, label="y2")
-    #plt.plot(t, z1, label="z1")
     #plt.plot(t, z2, label="z2")
 
     #plt.plot(t, vx, label="vx")
     #plt.plot(t, vy, label="vy")
     #plt.plot(t, vz, label="vz")
-    #plt.plot(t, x3, label="x3")
-    #plt.plot(t, y3, label="y3")
-    #plt.plot(t, z3, label="z3")
-    plt.plot(t, whichPole)
-    plt.plot(t, [i[0]*5/np.pi for i in poss], label="theta")
-    plt.plot(t, [i[1]*5/np.pi for i in poss], label="phi")
-    plt.plot(t, [i[0]*5/np.pi for i in vels], label="theta angular velocity")
-    plt.plot(t, [i[1]*5/np.pi for i in vels], label="phi angular velocity")
-    plt.plot(t, [i[0]*i[1]*(5/np.pi)**2 for i in vels], label="phidot * thetadot")
-    plt.plot(t, [(i[0]*5/np.pi)**2 for i in vels], label="thetadot ** 2")
-    plt.plot(t, [(i[1]*5/np.pi)**2 for i in vels], label="phidot ** 2")
-    #plt.plot(t, sines1, label="sines")
+    #plt.plot(t, whichPole1)
+    #plt.plot(t, whichPole2)
+    #plt.plot(t, theta, label="t1")
+    #plt.plot(t, phi, label="pi")
+    #plt.plot(t, thetadot, label="t1d")
+    #plt.plot(t, phidot, label="p1d")
+    #plt.plot(t, theta2, label="t2")
+    #plt.plot(t, phi2, label="p2")
+    #plt.plot(t, theta2dot, label="t2d")
+    #plt.plot(t, phi2dot, label="p2d")
+
+
+    #plt.plot(t[1:], [v[0]*0.1**3 + poss[i-1][0] for i, v in enumerate(vels[1:])], label="euler Position")
+    #plt.plot(t, [i[0]*i[1]*(5/np.pi)**2 for i in vels], label="phidot * thetadot")
+    #plt.plot(t, [(i[0]*5/np.pi)**2 for i in vels], label="thetadot ** 2")
+    #plt.plot(t, [(i[1]*5/np.pi)**2 for i in vels], label="phidot ** 2")
     plt.legend()
     plt.show()
 
