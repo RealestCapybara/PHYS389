@@ -232,6 +232,11 @@ class Pendulum():
                              l*np.sin(theta)*np.cos(phi),
                              l*np.sin(theta)*np.sin(phi)])
 
+    def Velocity(self):
+        return self.vel[0]*self.dT() + self.vel[1]*self.dP()
+
+    def KE(self):
+        return 0.5*self.mass*self.Velocity()@self.Velocity()
 class Mat():
     def __init__(self, qList, g):
         self.qList = qList
@@ -319,7 +324,7 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         V3 = Matr.GVec()
 
         V2 = [f(q) for q in qList for f in (lambda q: q.vel[0]**2,
-                                            lambda q: q.vel[0]*q.vel[1],
+                                            lambda q: 2*q.vel[0]*q.vel[1],
                                             lambda q: q.vel[1]**2)]
 
         V2 = np.array(V2)
@@ -393,8 +398,8 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         return val
 
 if __name__ == '__main__':
-    q1 = Pendulum(length=10, pos=[np.pi/2, 0], vel=[-np.pi,2.8887156], acc=[0,0], mass=1)
-    q2 = Pendulum(length=10, pos=[0.1, 0.1], vel=[0,0], acc=[0,0], mass=1)
+    q1 = Pendulum(length=10, pos=[np.pi/4, 0], vel=[0,3], acc=[0,0], mass=1, zPolar=True)
+    q2 = Pendulum(length=10, pos=[0.8, 0.1], vel=[0,0], acc=[0,0], mass=1)
     q3 = Pendulum(length=10, pos=[np.pi, 0.1], vel=[0,0], acc=[0,0], mass=1)
     Matr = Mat(qList=[q1], g=9.81)
     x1 = []
@@ -418,7 +423,10 @@ if __name__ == '__main__':
     vz = []
     vels = []
     poss = []
-    for i in range(1000):
+    KE = []
+    PE = []
+    Tot = []
+    for i in range(800):
 
         whichPole1.append((lambda x: 10 if x else -10)(Matr.qList[0].zPolar))
         #whichPole2.append((lambda x: 10 if x else -10)(Matr.qList[1].zPolar))
@@ -431,15 +439,19 @@ if __name__ == '__main__':
         y1.append(pos1[1])
         z1.append(pos1[2])
 
+        KE.append(q1.KE())
+        PE.append((pos1[2]+10)*q1.mass*9.81)
+
+        Tot.append(q1.KE() + (pos1[2]+10)*q1.mass*9.81 )
         #x2.append(pos2[0])
         #y2.append(pos2[1])
         #z2.append(pos2[2])
 
-        #vel = q.vel[0]*q.dT() + q.vel[1]*q.dP()
+        vel = q1.vel[0]*q1.dT() + q1.vel[1]*q1.dP()
         #v = (1/q.length)**2 *vel @ q.dT()
-        #vx.append(vel[0])
-        #vy.append(vel[1])
-        #vz.append(vel[2])
+        vx.append(vel[0])
+        vy.append(vel[1])
+        vz.append(vel[2])
         #vels.append(q.vel)
         #poss.append(q.pos)
         theta.append(Matr.qList[0].pos[0])
@@ -456,12 +468,15 @@ if __name__ == '__main__':
         Matr.RK4(timeDelta=0.1**2)
         Matr.fixCoords()
 
-    t = np.arange(0, 1000*0.1**2, 0.1**2)
+    t = np.arange(0, 800*0.1**2, 0.1**2)
 
     plt.plot(t, x1, label="x1")
     plt.plot(t, y1, label="y1")
     plt.plot(t, z1, label="z1")
 
+    plt.plot(t, KE, label="Kinetic")
+    plt.plot(t, PE, label="Potential")
+    plt.plot(t, Tot, label="Total")
     #plt.plot(t, x2, label="x2")
     #plt.plot(t, y2, label="y2")
     #plt.plot(t, z2, label="z2")
@@ -469,10 +484,10 @@ if __name__ == '__main__':
     #plt.plot(t, vx, label="vx")
     #plt.plot(t, vy, label="vy")
     #plt.plot(t, vz, label="vz")
-    #plt.plot(t, whichPole1)
+    plt.plot(t, whichPole1)
     #plt.plot(t, whichPole2)
     #plt.plot(t, theta, label="t1")
-    #plt.plot(t, phi, label="pi")
+    #plt.plot(t, phi, label="p1")
     #plt.plot(t, thetadot, label="t1d")
     #plt.plot(t, phidot, label="p1d")
     #plt.plot(t, theta2, label="t2")
