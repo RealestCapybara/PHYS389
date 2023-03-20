@@ -1,22 +1,37 @@
 import numpy as np
 
 class Pendulum():
-    """
+    """Pendulum(length, pos, vel, mass, zPolar=True)
     A class that represents a spherical pendulum.
 
     Parameters
     ----------
-    length : float
+    length : float or int
         The length of the pendulum.
     pos : array-like of shape (2,)
         The position of the pendulum in spherical coordinates.
     vel : array-like of shape (2,)
         The velocity of the pendulum in spherical coordinates.
-    mass : float
+    mass : float or int
         The mass of the pendulum.
     zPolar : bool, optional
         The coordinate system to use. If True, use z-polar coordinates.
         If False, use x-polar coordinates. Default is True.
+
+    Attributes
+    ----------
+    length : numpy 64 bit float
+        The length of the pendulum.
+    pos : numpy array (2,)
+        The angular position of the pendulum in spherical coordinates
+        (theta, phi).
+    vel : numpy array (2,)
+        The angular velocity of the pendulum in spherical coordinates
+        (dtheta, dphi).
+    mass : numpy 64 bit float
+        The mass of the pendulum.
+    zPolar : bool
+        The coordinate system being used.
 
     Raises
     ------
@@ -27,29 +42,8 @@ class Pendulum():
         If pos or vel does not have a length of 2, or if mass or length is not
         positive and non-zero.
 
-    Attributes
-    ----------
-    length : float
-        The length of the pendulum.
-    pos : array
-        The angular position of the pendulum in spherical coordinates
-        (theta, phi).
-    vel : array
-        The angular velocity of the pendulum in spherical coordinates
-        (dtheta, dphi).
-    mass : float
-        The mass of the pendulum.
-    zPolar : bool
-        The coordinate system being used.
-
     Methods
     -------
-    __mul__(self, other)
-        Multiply the pendulum by a scalar.
-    __rmul__(self, other)
-        Multiply the pendulum by a scalar.
-    __add__(self, other)
-        Add the pendulum to another pendulum object.
     dT(self)
         Calculate the partial derivative of the cartesian representation of
         the pendulum with respect to theta (the polar angle).
@@ -73,10 +67,19 @@ class Pendulum():
         representation of the pendulum with respect to phi.
     Velocity(self)
         Calculate the cartesian velocity of the pendulum.
-    fixCoord(self, release=True)
-        Swap the coordinate system if the pendulum gets too close to a pole.
     toCartesian(self)
         Calculate the cartesian position of the pendulum.
+    fixCoord(self, release=True)
+        Swap the coordinate system if the pendulum gets too close to a pole.
+
+    Dunder Methods
+    --------------
+    __mul__(self, other)
+        Multiply the pendulum by a scalar.
+    __rmul__(self, other)
+        Multiply the pendulum by a scalar.
+    __add__(self, other)
+        Add the pendulum to another pendulum object.
     """
 
     def __init__(self, length, pos, vel, mass, zPolar=True):
@@ -85,7 +88,7 @@ class Pendulum():
 
         Parameters
         ----------
-        length : float
+        length : float or int
             Length of the pendulum.
         pos : array-like of shape (2,)
             Initial position of the pendulum, specified as a pair of polar
@@ -93,7 +96,7 @@ class Pendulum():
         vel : array-like of shape (2,)
             Initial velocity of the pendulum, specified as a pair of angular
             velocities (dtheta, dphi).
-        mass : float
+        mass : float or int
             Mass of the pendulum.
         zPolar : bool, optional
             If True, use the z-polar coordinate system (default). If False, use
@@ -107,7 +110,7 @@ class Pendulum():
         ValueError
             If pos or vel do not have length 2, or if mass or length are not
             positive and non-zero.
-    """
+        """
         try:
             self.pos = np.array(pos)
             self.vel = np.array(vel)
@@ -120,8 +123,8 @@ class Pendulum():
             raise ValueError("vel must have len == 2")
 
         try:
-            self.mass = float(mass)
-            self.length = float(length)
+            self.mass = np.float64(mass)
+            self.length = np.float64(length)
         except TypeError:
             raise TypeError("mass and length must be float-like")
 
@@ -216,16 +219,23 @@ class Pendulum():
     def dT(self):
         """
         Calculates the partial derivative of the cartesian position of the
-        pendulum with respect to theta, the polar angle (depends on
-        what coordinate system the pendulum is in).
+        pendulum with respect to theta, the polar angle.
 
         Returns
         -------
-        numpy.ndarray
+        numpy.ndarray, shape=(3,)
             A 3-element numpy array representing the partial derivative of
             the cartesian position of the pendulum with respect to theta.
-            The order of the elements are [dx/dtheta, dy/dtheta, dz/dtheta],
-            where x, y, and z represent the cartesian position of the pendulum.
+
+        Notes
+        -----
+        The formula used and the definition of theta depends on the coordinate
+        system. If zPolar is True then theta is the polar angle from the
+        (negative) z-axis, but if zPolar is False then theta is the polar angle
+        from the x-axis. The formula in either case is [dx/dtheta, dy/dtheta,
+        dz/dtheta], but the definition of x, y, and z, depends on the spherical
+        coordinate basis. The formulae for x, y, and z were chosen such that in
+        either coordinate system, they would return the same cartesian values.
         """
         l = self.length
         theta = self.pos[0]
@@ -243,18 +253,25 @@ class Pendulum():
     def dP(self):
         """
         Calculates the partial derivative of the cartesian position of the
-        pendulum with respect to phi, the azimuthal angle (depends on
-        what coordinate system the pendulum is in).
+        pendulum with respect to phi, the azimuthal angle.
 
         Returns
         -------
-        numpy.ndarray
+        numpy.ndarray, shape=(3,)
             A 3-element numpy array representing the partial derivative of
             the cartesian position of the pendulum with respect to phi.
-            The order of the elements are [dx/dphi, dy/dphi, dz/dphi],
-            where x, y, and z represent the cartesian position of the pendulum.
-        """
 
+        Notes
+        -----
+        The formula used and the definition of phi depends on the coordinate
+        system. If zPolar is True then phi is the azimuthal angle from the
+        x-axis going to the y-axis as phi increases, but if zPolar is False
+        then phi is the azimuthal angle going from the y-axis to the z-axis as
+        phi increases. The formula in either case is [dx/dphi, dy/dphi,
+        dz/dphi], but the definition of x, y, and z, depends on the spherical
+        coordinate basis. The formulae for x, y, and z were chosen such that in
+        either coordinate system, they would return the same cartesian values.
+        """
         l = self.length
         theta = self.pos[0]
         phi = self.pos[1]
@@ -270,19 +287,25 @@ class Pendulum():
     def dT2(self):
         """
         Calculates the second partial derivative of the cartesian position of
-        the pendulum with respect to theta, the polar angle (depends on
-        what coordinate system the pendulum is in).
+        the pendulum with respect to theta, the polar angle.
 
         Returns
         -------
-        numpy.ndarray
+        numpy.ndarray, shape=(3,)
             A 3-element numpy array representing the second partial derivative
             of the cartesian position of the pendulum with respect to theta.
-            The order of the elements are [d^2x/dtheta^2, d^2y/dtheta^2,
-            d^2z/dtheta^2], where x, y, and z represent the cartesian position
-            of the pendulum.
-        """
 
+        Notes
+        -----
+        The formula used and the definition of theta depends on the coordinate
+        system. If zPolar is True then theta is the polar angle from the
+        (negative) z-axis, but if zPolar is False then theta is the polar angle
+        from the x-axis. The formula in either case is [d^2x/dtheta^2,
+        d^2y/dtheta^2, d^2z/dtheta^2], but the definition of x, y, and z,
+        depends on the spherical coordinate basis. The formulae for x, y, and z
+        were chosen such that in either coordinate system, they would return
+        the same cartesian values.
+        """
         l = self.length
         theta = self.pos[0]
         phi = self.pos[1]
@@ -299,19 +322,26 @@ class Pendulum():
     def dP2(self):
         """
         Calculates the second partial derivative of the cartesian position of
-        the pendulum with respect to phi, the azimuthal angle (depends on
-        what coordinate system the pendulum is in).
+        the pendulum with respect to phi, the azimuthal angle.
 
         Returns
         -------
-        numpy.ndarray
+        numpy.ndarray, shape=(3,)
             A 3-element numpy array representing the second partial derivative
             of the cartesian position of the pendulum with respect to phi.
-            The order of the elements are [d^2x/dphi^2, d^2y/dphi^2,
-            d^2z/dphi^2], where x, y, and z represent the cartesian position
-            of the pendulum.
-        """
 
+        Notes
+        -----
+        The formula used and the definition of phi depends on the coordinate
+        system. If zPolar is True then phi is the azimuthal angle from the
+        x-axis going to the y-axis as phi increases, but if zPolar is False
+        then phi is the azimuthal angle going from the y-axis to the z-axis as
+        phi increases. The formula in either case is [d^2x/dphi^2, d^2y/dphi^2,
+        d^2z/dphi^2], but the definition of x, y, and z, depends on the
+        spherical coordinate basis. The formulae for x, y, and z were chosen
+        such that in either coordinate system, they would return the same
+        cartesian values.
+        """
         l = self.length
         theta = self.pos[0]
         phi = self.pos[1]
@@ -329,17 +359,27 @@ class Pendulum():
         """
         Calculates the second partial derivative of the cartesian position of
         the pendulum with respect to both theta and phi, the polar and
-        azimuthal angles respectively (both depend on what coordinate system
-        the pendulum is in).
+        azimuthal angles respectively.
 
         Returns
         -------
-        numpy.ndarray
+        numpy.ndarray, shape=(3,)
             A 3-element numpy array representing the second partial derivative
             of the cartesian position of the pendulum with respect to both
-            theta and phi. The order of the elements are [d^2x/dphidtheta,
-            d^2y/dphidtheta, d^2z/dphidtheta], where x, y, and z represent the
-            cartesian position of the pendulum.
+            theta and phi.
+
+        Notes
+        -----
+        The formula used and the definition of theta and phi depends on the
+        coordinate basis used. If zPolar is True then theta is the polar angle
+        from the (negative) z-axis and phi is the azimuthal angle from the
+        x-axis going to the y-axis as phi increases, but if zPolar is False
+        then theta is the polar angle from the x-axis and phi is the azimuthal
+        angle going from the y-axis to the z-axis as phi increases. The formula
+        in either case is [d^2x/dphidtheta, d^2y/dphidtheta, d^2z/dphidtheta],
+        but the definition of x, y, and z, depends on the spherical coordinate
+        basis. The formulae for x, y, and z were chosen such that in either
+        coordinate system, they would return the same cartesian values.
         """
         l = self.length
         theta = self.pos[0]
@@ -361,11 +401,20 @@ class Pendulum():
 
         Returns
         -------
-        float
+        numpy 64 bit float
             The value of the partial derivative of the z-component of the
             cartesian representation of the pendulum position with respect to
-            theta. Mathematically, the value is dz/dtheta.
+            theta.
 
+        Notes
+        -----
+        The formula used and the definition of theta depends on the coordinate
+        system. If zPolar is True then theta is the polar angle from the
+        (negative) z-axis, but if zPolar is False then theta is the polar angle
+        from the x-axis. The formula in either case is dz/dtheta, but the
+        definition of z depends on the spherical coordinate basis. The formulae
+        for z was chosen such that in either coordinate system, it would return
+        the same cartesian value.
         """
         l = self.length
         theta = self.pos[0]
@@ -386,10 +435,19 @@ class Pendulum():
         float
             The value of the partial derivative of the z-component of the
             cartesian representation of the pendulum position with respect to
-            phi. Mathematically, the value is dz/dphi.
+            phi.
 
+        Notes
+        -----
+        The formula used and the definition of theta depends on the coordinate
+        system. If zPolar is True then phi is the azimuthal angle from the
+        x-axis going to the y-axis as phi increases, but if zPolar is False
+        then phi is the azimuthal angle going from the y-axis to the z-axis as
+        phi increases. The formula in either case is dz/dphi, but the
+        definition of z depends on the spherical coordinate basis. The formulae
+        for z was chosen such that in either coordinate system, it would return
+        the same cartesian value.
         """
-
         l = self.length
         theta = self.pos[0]
         phi = self.pos[1]
@@ -403,12 +461,6 @@ class Pendulum():
         """
         Returns the cartesian velocity of the pendulum.
 
-        The method calculates the partial derivatives of the cartesian position
-        of the pendulum with respect to both theta and phi, and scales them by
-        their respective angular velocities. It then takes the sum of the
-        scaled derivatives to obtain the velocity vector in cartesian
-        coordinates.
-
         Returns
         -------
         numpy.ndarray
@@ -417,7 +469,13 @@ class Pendulum():
 
         Notes
         -----
-        This formulae is derived using the chain rule, and thus applies in
+        The method calculates the partial derivatives of the cartesian position
+        of the pendulum with respect to both theta and phi, and scales them by
+        their respective angular velocities. It then takes the sum of the
+        scaled derivatives to obtain the velocity vector in cartesian
+        coordinates.
+
+        This is derived using the chain rule, and thus applies in
         either coordinate systems.
         """
         return self.vel[0]*self.dT() + self.vel[1]*self.dP()
@@ -507,7 +565,7 @@ class Pendulum():
         derivatives and values of phi and theta can be used to calculate the
         new values of thetadot and phidot such that the cartesian velocity is
         conserved over transformation.
-    """
+        """
 
         theta = self.pos[0]
         phi = self.pos[1]
@@ -541,8 +599,10 @@ class Pendulum():
 
         self.zPolar = not self.zPolar
 
-        self.vel[0] = (1/self.length)**2 * v @ self.dT()
+        self.vel[0] = (1/self.length)**2 * v@self.dT()
         self.vel[1] = (1/(self.length * np.sin(theta2)))**2 * v@self.dP()
 
         return True
 
+if __name__ == "__main__":
+    pass

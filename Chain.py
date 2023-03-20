@@ -533,3 +533,25 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         self.pList = pList
         return val
 
+    def KE(self):
+        pList = self.pList
+        massList = [p.mass for p in pList]
+        xdots = [np.array([0, 0, 0])]
+        for p in pList:
+            xdots.append(p.Velocity()+xdots[-1])
+        T = 0
+        for i, xdot in enumerate(xdots[1:]):
+            T += 0.5*massList[i]*xdot@xdot
+        return T
+
+    def PE(self):
+        pList = self.pList
+        g = self.g
+        massList = [p.mass for p in pList]
+        xs = [0]
+        for p in pList:
+            xs.append(p.toCartesian()[2]+p.length+xs[-1])
+        V = 0
+        for i, x in enumerate(xs[1:]):
+            V += massList[i]*g*x
+        return V
