@@ -1,204 +1,168 @@
 import numpy as np
-from numpy.linalg import norm
+from Pendulum import Pendulum
+from Chain import Chain
+import tomllib as toml
+import pickle
+from tqdm import tqdm
 
-class Quat():
-    """Quaternion object. Requires 4 components, 1 real, 3 imaginary.
-    Vector Form: q = 0 + x i + y j + z k
-    Rotation Form: q = cos(A/2) + sin(A/2)[n_x i + n_y j + n_z k]
-    """
-    def __init__(self, q0, q1, q2, q3):
+with open("config.toml", "rb") as f:
+    data = toml.load(f)
+
+print(data['system']['pendula'][0])
+
+def genPList(data):
+    try:
+        data = data['system']
+    except KeyError:
+        raise KeyError("config file has misnamed or absent 'system' table")
+    try:
+        PDatList = data['pendula']
+    except KeyError:
+        raise KeyError("config file has missing or misnamed 'pendula' array")
+
+    if not isinstance(PDatList, list):
+        raise ValueError("'pendula' item in config file must be an array")
+
+    if len(PDatList) == 0:
+        raise ValueError("config file must have at least one pendula item")
+
+    pList = []
+
+    for i, v in enumerate(PDatList):
         try:
-            self.q0 = np.float64(q0)
-            self.q1 = np.float64(q1)
-            self.q2 = np.float64(q2)
-            self.q3 = np.float64(q3)
-        except:
-            raise TypeError("Quaternion can only take numeric input data")
+            length = v['length']
+        except KeyError:
+            length = 10
+            raise Warning(f"\
+length for pendula {i} has not been specified, defaulting to length=10m")
+        try:
+            mass = v['mass']
+        except KeyError:
+            mass = 1
+            raise Warning(f"\
+mass for pendula {i} has not been specified, defaulting to mass=1kg")
+        try:
+            theta = v["theta"]
+        except KeyError:
+            theta = [0, 'r']
+        try:
+            phi = v["phi"]
+        except KeyError:
+            phi = [0, 'r']
+        try:
+            thetadot = v["thetadot"]
+        except KeyError:
+            thetadot = [0, 'r']
+        try:
+            phidot = v["phidot"]
+        except KeyError:
+            phidot = [0, 'r']
 
-    def __mul__(self, other):
-        """Defines Quaternion self multiplication and scaling."""
-        if type(other) == type(self):
-            q0 = self.q0
-            q1 = self.q1
-            q2 = self.q2
-            q3 = self.q3
+        vals = [theta, phi, thetadot, phidot]
 
-            p0 = other.q0
-            p1 = other.q1
-            p2 = other.q2
-            p3 = other.q3
-            return Quat(q0*p0-q1*p1-q2*p2-q3*p3,
-                        q0*p1+q1*p0+q2*p3-q3*p2,
-                        q0*p2-q1*p3+q2*p0+q3*p1,
-                        q0*p3+q1*p2-q2*p1+q3*p0)
-        else:
-            try:
-                return Quat(self.q0*other, self.q1*other,
-                             self.q2*other, self.q3*other)
-            except TypeError:
-                raise TypeError(f"\
-Quaternion cannot be multiplied with object of type {type(other)}\n\
-Can only be multiplied by another quaternion or scaled")
+        if not all(isinstance(val, list) for val in vals):
+            raise TypeError("theta, phi, thetadot, and phidot must be arrays")
 
-    def __rmul__(self, other):
-        """Defined in case a scaler is on the other side of the product"""
-        if type(other) == type(self):
-            return other.__mul__(self)
-        else:
-            return self.__mul__(other)
+        if not all(len(val)==2 for val in vals):
+            raise ValueError(
+                "theta, phi, thetadot, and phidot must have len=2")
 
-    def __add__(self, other):
-        """Defines the termwise addition of Quaternions"""
-        if type(other) == type(self):
-            return Quat(self.q0+other.q0, self.q1+other.q1,
-                         self.q2+other.q2, self.q3+other.q3)
-        else:
-            raise TypeError("\
-Quaternion cannot be summed with non-Quaternion object")
-    def __str__(self):
-        return f"{self.q0} + {self.q1} i + {self.q2} j + {self.q3} k"
+        if not all(isinstance(val[0], (float, int)) for val in vals):
+            raise TypeError(
+                "Initial values of theta, phi, thetadot, and phidot must be \
+                of type int or float")
+        if not all(isinstance(val[1], str) for val in vals):
+            raise TypeError(
+                "Second values of theta, phi, thetadot, and phidot must be \
+                of type int")
+        if not all((val[1] in ['r', 'p', 'd']) for val in vals):
+            raise ValueError(
+                "Second values of theta, phi, thetadot, and phidot must be \
+                'r', 'p', or 'd' as these represent the accepted angle units.")
 
-    def __repr__(self):
-        return f"Quat({self.q0}, {self.q1}, {self.q2}, {self.q3})"
+        vals = [(lambda v: np.pi*v[0] if v[1]=='p' else
+                 (v[0]*np.pi/180 if v[1]=='d' else v[0]))(val) for val in vals]
 
-    def __format__(self, spec):
-        return str(Quat(format(self.q0, spec), format(self.q1, spec),
-                     format(self.q2, spec), format(self.q3, spec)))
+        try:
+            zPolar = v["zPole"]
+        except KeyError:
+            zPolar = True
 
-    def __getitem__(self, key):
-        if key == 0:
-            return self.q0
-        elif key == 1:
-            return self.q1
-        elif key == 2:
-            return self.q2
-        elif key == 3:
-            return self.q3
-        else:
-            raise KeyError("Invalid key for indexing Quaternion object")
+        if not isinstance(zPolar, bool):
+            raise TypeError("zPole must be a boolean value")
 
-    def __abs__(self):
-        return np.sqrt(self.q0**2 + self.q1**2 + self.q2**2 + self.q3**2)
+        p = Pendulum(length=length, mass=mass, pos=vals[:2], vel=vals[2:],
+                     zPolar=zPolar)
 
-    def __iter__(self):
-        for val in [self.q0, self.q1, self.q2, self.q3]:
-            yield val
+        pList.append(p)
 
-    def __matmul__(self, other):
-        """Encodes a 'dot product' functionality to quaternions."""
-        return self.q0 * other.q0 + self.q1 * other.q1 + self.q2 * other.q2 +
-                    self.q3 * other.q3
+    return(pList)
 
-    def conjugate(self):
-        """Returns the conjugate of the Quaterion object"""
-        return Quat(self.q0, -self.q1, -self.q2, -self.q3)
+def SystemValues(data):
+    try:
+        data = data['system']
+    except KeyError:
+        raise KeyError("config file has misnamed or absent 'system' table")
 
-class Pend():
-    """Pendulum Object.
-    mass (numeric) default=1.0 Encodes mass (both inertial and gravitational)
-    pos (Quat) default=Quat(0, 0, 0, 1) Encodes length and orientation
-    vel (Quat) default=Quat(0, 0, 0, 0) Encodes velocity
-    acc (Quat) default=Quat(0, 0, 0, 0) Encodes acceleration
-    """
-    def __init__(self, mass=1.0, pos = Quat(0, 0, 0, 1),
-                 vel = Quat(0, 0, 0, 0), acc = Quat(0, 0, 0, 0)):
-        """Pendulum Object"""
-        for name, val in [('pos', type(pos)), ('vel', type(vel)),
-                          ('acc', type(acc))]:
-            if val != Quat:
-                raise TypeError(f"\
-{name} cannot be of type {val}, must be of type Quat")
+    try:
+        g = data["g"]
+    except KeyError:
+        g = 9.81
+        raise Warning("g not specified, defaulting to 9.81")
 
-        self.pos = pos
-        self.vel = vel
-        self.acc = acc
-        self.mass = mass
-        self.parent = None
-        self.child = None
-        self.sibling = None
+    try:
+        timedelta = data["timedelta"]
+    except KeyError:
+        raise KeyError("'timedelta' value has been misnamed or is absent")
 
-    def rotate(self, delta):
-        """Rotates the position by a given Delta (change in position)
-        Needs very small delta due to use of trig approximations"""
-        pos = self.pos
-        #for two "vector form" quaternions, their product is analogous to a 
-        #cross product. Therefore by taking the quaternion product of the 
-        #position and the delta, a new quaternion parallel to the axis of 
-        #rotation and equal to the product of the radius and the angular 
-        #component of delta
-        q = self.pos * delta
+    try:
+        steps = data["steps"]
+    except KeyError:
+        raise KeyError("'steps' value has been misnamed or is absent")
 
-        posA = abs(pos)
-        qA = abs(q)
+    try:
+        filename = data["filename"]
+    except KeyError:
+        raise KeyError("'filename' value has been misnamed or is absent")
 
-        #to turn q into a rotation quaternion, the angle can be calculated
-        #by using the tan(theta)=theta approximation, which results in 
-        #theta = |q|/(|pos|^2) which can then be used to scale q by 
-        #sin(theta/2)/|q| (1/|q| to account for the necessary normalisation)
-        #and added to cos(theta/2). Quadratic trig approximations are used for
-        #both. As the delta is expected to be small, their use is tolerable.
-        #This means that errors will be expected to scale cubicly.
-        q = q * (1/(2*posA**2))
-        q = q + Quat(1-(qA**2/(8*posA**4)), 0, 0, 0)
+    if not isinstance(g, (float, int)):
+        raise TypeError("'g' must be a float or int")
 
-        #Quaternion is then normalised to ensure that it is a unitary
-        #transformation and doesn't modify the length of the pendulum
-        q = q * (1/abs(q))
+    if not isinstance(timedelta, (float, int)):
+        raise TypeError("'timedelta' must be a float or int")
 
-        #once the rotation quaternion is calculated, all that is needed to
-        #apply it is simple quaternion multiplication
-        self.pos = q * pos * q.conjugate()
+    if not isinstance(steps, int):
+        raise TypeError("'steps' must be an int")
 
-    def TensionOnParent(self, inplace=True):
-        x = self.pos
-        a = self.acc
-        T = (x @ a)/(abs(x)**2) * x
-        if inplace == True:
-            self.parent.acc += T
-        else:
-            return T
+    if not isinstance(filename, str):
+        raise TypeError("'filename' must be a str")
 
-class GenList():
-    def __init__(self, root):
-        if type(root) != Pend:
-            raise TypeError("root must be Pendulum")
+    return g, timedelta, steps, filename
 
-        currentGen = 0
-        List = [[root]]
 
-        while True:
-            NextGen = []
-            for pend in List[currentGen]:
-                child = pend.child
-                while child is not None:
-                    NextGen.append(child)
-                    child = child.sibling
-            if len(NextGen) == 0:
-                break
-            else:
-                List.append(NextGen)
-                currentGen += 1
 
-        self._List = np.array(List)
-        self._rList = np.array(List.reverse())
+g, timedelta, steps, filename = SystemValues(data)
 
-    def __iter__(self):
-        return self._List
-    def __getitem__(self, idx):
-        return self._List[idx]
-    def __str__(self):
-        return f"GenList({str(self._List)})"
-    def __repr__(self):
-        return f"GenList({repr(self._List)})"
+pList = genPList(data)
 
-    def UpdateAcc(self):
-        for Gen in self._rList:
-            for P in Gen:
-                P.acc = Quat(0, 0, 0, self.mass * 9.81)
+print(Chain(pList=pList, g=g))
 
-        for Gen in self._rList:
-            for P in Gen:
-                P.TensionOnParent()
+if __name__ != '__main__':
 
-if __name__ == "__main__":
-    pass
+    pList = genPList(data)
+
+    g, timedelta, steps, filename = SystemValues(data)
+
+    System = Chain(pList=pList, g=g)
+    System.fixCoords()
+    SystemEveryTick = [timedelta]
+
+    for i in tqdm(range(steps), desc="Simulating...":
+        SystemEveryTick.append(System)
+        System.RK4(timedelta)
+        System.fixCoords()
+
+    print(f"Saving to {filename}.pickle...")
+
+    with open(f"{filename}.pickle", 'wb') as file:
+        pickle.dump(SystemEveryTick, file, protocol=pickle.HIGHEST_PROTOCOL)
