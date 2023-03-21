@@ -1,126 +1,168 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from Pendulum import Pendulum
 from Chain import Chain
+import tomllib as toml
+import pickle
+from tqdm import tqdm
 
-if __name__ == '__main__':
-    p1 = Pendulum(length=10, pos=[np.pi/2, 0], vel=[0,0], mass=1.5)
-    p2 = Pendulum(length=10, pos=[2.8, 0.1], vel=[0,0], mass=10)
-    p3 = Pendulum(length=10, pos=[np.pi, 0.1], vel=[0,0], mass=5)
-    Chain1 = Chain(pList=[p1, p2, p3], g=9.81)
-    x1 = []
-    y1 = []
-    z1 = []
-    x2 = []
-    y2 = []
-    z2 = []
-    theta = []
-    phi = []
-    thetadot = []
-    phidot = []
-    theta2 = []
-    phi2 = []
-    theta2dot = []
-    phi2dot = []
-    whichPole1 = []
-    whichPole2 = []
-    vx = []
-    vy = []
-    vz = []
-    vels = []
-    poss = []
-    KE = []
-    PE = []
-    Tot = []
-    x3 = []
-    y3 = []
-    z3 = []
-    for i in range(800):
+with open("config.toml", "rb") as f:
+    data = toml.load(f)
 
-        #whichPole1.append((lambda x: 10 if x else -10)(Chain1.pList[0].zPolar))
-        #whichPole2.append((lambda x: 10 if x else -10)(Chain1.pList[1].zPolar))
-        #whichPole3.append((lambda x: 10 if x else -10)(Chain1.pList[2].zPolar))
-        p1 = Chain1.pList[0]
-        pos1 = p1.toCartesian()
-        p2 = Chain1.pList[1]
-        pos2 = p2.toCartesian()
-        p3 = Chain1.pList[2]
-        pos3 = p3.toCartesian()
+print(data['system']['pendula'][0])
 
-        x1.append(pos1[0])
-        y1.append(pos1[1])
-        z1.append(pos1[2])
+def genPList(data):
+    try:
+        data = data['system']
+    except KeyError:
+        raise KeyError("config file has misnamed or absent 'system' table")
+    try:
+        PDatList = data['pendula']
+    except KeyError:
+        raise KeyError("config file has missing or misnamed 'pendula' array")
 
-        x2.append(pos2[0])
-        y2.append(pos2[1])
-        z2.append(pos2[2])
+    if not isinstance(PDatList, list):
+        raise ValueError("'pendula' item in config file must be an array")
 
-        x3.append(pos3[0])
-        y3.append(pos3[1])
-        z3.append(pos3[2])
+    if len(PDatList) == 0:
+        raise ValueError("config file must have at least one pendula item")
 
-        KE.append(Chain1.KE())
-        PE.append(Chain1.PE())
+    pList = []
 
-        Tot.append(Chain1.KE()+Chain1.PE())
+    for i, v in enumerate(PDatList):
+        try:
+            length = v['length']
+        except KeyError:
+            length = 10
+            raise Warning(f"\
+length for pendula {i} has not been specified, defaulting to length=10m")
+        try:
+            mass = v['mass']
+        except KeyError:
+            mass = 1
+            raise Warning(f"\
+mass for pendula {i} has not been specified, defaulting to mass=1kg")
+        try:
+            theta = v["theta"]
+        except KeyError:
+            theta = [0, 'r']
+        try:
+            phi = v["phi"]
+        except KeyError:
+            phi = [0, 'r']
+        try:
+            thetadot = v["thetadot"]
+        except KeyError:
+            thetadot = [0, 'r']
+        try:
+            phidot = v["phidot"]
+        except KeyError:
+            phidot = [0, 'r']
 
-        #vel = p1.vel[0]*p1.dT() + p1.vel[1]*p1.dP()
-        #v = (1/q.length)**2 *vel @ q.dT()
-        #vx.append(vel[0])
-        #vy.append(vel[1])
-        #vz.append(vel[2])
-        #vels.append(q.vel)
-        #poss.append(q.pos)
-        #theta.append(Chain1.pList[0].pos[0])
-        #phi.append(Chain1.pList[0].pos[1])
-        #thetadot.append(Chain1.pList[0].vel[0])
-        #phidot.append(Chain1.pList[0].vel[1])
-        #theta2.append(Matr.qList[1].pos[0])
-        #phi2.append(Matr.qList[1].pos[1])
-        #theta2dot.append(Matr.qList[1].vel[0])
-        #phi2dot.append(Matr.qList[1].vel[1])
-        Chain1.fixCoords()
-        #Matr = Matr + 0.1**3 * Mat._Func(Matr)
-        #Matr.RK(0.1**3, [1], np.array([]), Mat._Func)
-        Chain1.RK4(timeDelta=0.1**2)
-        Chain1.fixCoords()
+        vals = [theta, phi, thetadot, phidot]
 
-    t = np.arange(0, 800*0.1**2, 0.1**2)
+        if not all(isinstance(val, list) for val in vals):
+            raise TypeError("theta, phi, thetadot, and phidot must be arrays")
 
-    plt.plot(t, x1, label="x1")
-    plt.plot(t, y1, label="y1")
-    plt.plot(t, z1, label="z1")
+        if not all(len(val)==2 for val in vals):
+            raise ValueError(
+                "theta, phi, thetadot, and phidot must have len=2")
 
-    plt.plot(t, x2, label="x2")
-    plt.plot(t, y2, label="y2")
-    plt.plot(t, z2, label="z2")
+        if not all(isinstance(val[0], (float, int)) for val in vals):
+            raise TypeError(
+                "Initial values of theta, phi, thetadot, and phidot must be \
+                of type int or float")
+        if not all(isinstance(val[1], str) for val in vals):
+            raise TypeError(
+                "Second values of theta, phi, thetadot, and phidot must be \
+                of type int")
+        if not all((val[1] in ['r', 'p', 'd']) for val in vals):
+            raise ValueError(
+                "Second values of theta, phi, thetadot, and phidot must be \
+                'r', 'p', or 'd' as these represent the accepted angle units.")
 
-    plt.plot(t, x3, label="x3")
-    plt.plot(t, y3, label="y3")
-    plt.plot(t, z3, label="z3")
+        vals = [(lambda v: np.pi*v[0] if v[1]=='p' else
+                 (v[0]*np.pi/180 if v[1]=='d' else v[0]))(val) for val in vals]
 
-    plt.plot(t, KE, label="Kinetic")
-    plt.plot(t, PE, label="Potential")
-    plt.plot(t, Tot, label="Total")
-    #plt.plot(t, vx, label="vx")
-    #plt.plot(t, vy, label="vy")
-    #plt.plot(t, vz, label="vz")
-    #plt.plot(t, whichPole1)
-    #plt.plot(t, whichPole2)
-    #plt.plot(t, theta, label="t1")
-    #plt.plot(t, phi, label="p1")
-    #plt.plot(t, thetadot, label="t1d")
-    #plt.plot(t, phidot, label="p1d")
-    #plt.plot(t, theta2, label="t2")
-    #plt.plot(t, phi2, label="p2")
-    #plt.plot(t, theta2dot, label="t2d")
-    #plt.plot(t, phi2dot, label="p2d")
+        try:
+            zPolar = v["zPole"]
+        except KeyError:
+            zPolar = True
+
+        if not isinstance(zPolar, bool):
+            raise TypeError("zPole must be a boolean value")
+
+        p = Pendulum(length=length, mass=mass, pos=vals[:2], vel=vals[2:],
+                     zPolar=zPolar)
+
+        pList.append(p)
+
+    return(pList)
+
+def SystemValues(data):
+    try:
+        data = data['system']
+    except KeyError:
+        raise KeyError("config file has misnamed or absent 'system' table")
+
+    try:
+        g = data["g"]
+    except KeyError:
+        g = 9.81
+        raise Warning("g not specified, defaulting to 9.81")
+
+    try:
+        timedelta = data["timedelta"]
+    except KeyError:
+        raise KeyError("'timedelta' value has been misnamed or is absent")
+
+    try:
+        steps = data["steps"]
+    except KeyError:
+        raise KeyError("'steps' value has been misnamed or is absent")
+
+    try:
+        filename = data["filename"]
+    except KeyError:
+        raise KeyError("'filename' value has been misnamed or is absent")
+
+    if not isinstance(g, (float, int)):
+        raise TypeError("'g' must be a float or int")
+
+    if not isinstance(timedelta, (float, int)):
+        raise TypeError("'timedelta' must be a float or int")
+
+    if not isinstance(steps, int):
+        raise TypeError("'steps' must be an int")
+
+    if not isinstance(filename, str):
+        raise TypeError("'filename' must be a str")
+
+    return g, timedelta, steps, filename
 
 
-    #plt.plot(t[1:], [v[0]*0.1**3 + poss[i-1][0] for i, v in enumerate(vels[1:])], label="euler Position")
-    #plt.plot(t, [i[0]*i[1]*(5/np.pi)**2 for i in vels], label="phidot * thetadot")
-    #plt.plot(t, [(i[0]*5/np.pi)**2 for i in vels], label="thetadot ** 2")
-    #plt.plot(t, [(i[1]*5/np.pi)**2 for i in vels], label="phidot ** 2")
-    plt.legend()
-    plt.show()
 
+g, timedelta, steps, filename = SystemValues(data)
+
+pList = genPList(data)
+
+print(Chain(pList=pList, g=g))
+
+if __name__ != '__main__':
+
+    pList = genPList(data)
+
+    g, timedelta, steps, filename = SystemValues(data)
+
+    System = Chain(pList=pList, g=g)
+    System.fixCoords()
+    SystemEveryTick = [timedelta]
+
+    for i in tqdm(range(steps), desc="Simulating...":
+        SystemEveryTick.append(System)
+        System.RK4(timedelta)
+        System.fixCoords()
+
+    print(f"Saving to {filename}.pickle...")
+
+    with open(f"{filename}.pickle", 'wb') as file:
+        pickle.dump(SystemEveryTick, file, protocol=pickle.HIGHEST_PROTOCOL)

@@ -534,6 +534,14 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         return val
 
     def KE(self):
+        """
+        Calculates the kinetic energy of the connected pendulum system.
+
+        Returns
+        -------
+        float
+            The total kinetic energy of the system.
+        """
         pList = self.pList
         massList = [p.mass for p in pList]
         xdots = [np.array([0, 0, 0])]
@@ -550,7 +558,7 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         massList = [p.mass for p in pList]
         xs = [0]
         for p in pList:
-            xs.append(p.toCartesian()[2]+p.length+xs[-1])
+            xs.append(p.toCartesian()[2]+xs[-1])
         V = 0
         for i, x in enumerate(xs[1:]):
             V += massList[i]*g*x
