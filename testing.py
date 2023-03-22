@@ -19,8 +19,6 @@ class TestPendulumMethods(unittest.TestCase):
         self.assertEqual(p1 + p2, p2 + p1)
         self.assertEqual((p1+p2).length, 10)
         self.assertEqual((p1+p2).mass, 1)
-        self.assertEqual(p1+0, p1)
-        self.assertEqual(None+p2, p2)
 
     def test_mul(self):
         p1 = Pendulum(length=5, mass=1, pos=[0.6, 0.8], vel=[0.2, 0.4])

@@ -147,10 +147,11 @@ pos={self.pos}, vel={self.vel}, zPolar={self.zPolar})"
         else:
             length = self.length == other.length
             mass = self.mass == other.mass
-            pos = all([i == j for i, j in zip(self.pos, other.pos)])
-            vel = all([i == j for i, j in zip(self.vel, other.vel)])
+            pos = all([round(i,16) == round(j,16) for i, j in
+                       zip(self.pos, other.pos)])
+            vel = all([round(i, 16) == round(j, 16) for i, j in
+                       zip(self.vel, other.vel)])
             pole = self.zPolar == other.zPolar
-            print(type([length, mass, pos, vel, pole]))
             val = all([length, mass, pos, vel, pole])
             return val
 
