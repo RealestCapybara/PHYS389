@@ -133,6 +133,27 @@ class Pendulum():
 
         self.zPolar = bool(zPolar)
 
+    def __str__(self):
+        return f"p: pos={self.pos}, vel={self.vel}, mass={self.mass}, \
+length={self.length}, basis={(lambda v: 'z' if v else 'x')(self.zPolar)}"
+
+    def __repr__(self):
+        return f"Pendulum(length={self.length}, mass={self.mass}, \
+pos={self.pos}, vel={self.vel}, zPolar={self.zPolar})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Pendulum):
+            return False
+        else:
+            length = self.length == other.length
+            mass = self.mass == other.mass
+            pos = all([i == j for i, j in zip(self.pos, other.pos)])
+            vel = all([i == j for i, j in zip(self.vel, other.vel)])
+            pole = self.zPolar == other.zPolar
+            print(type([length, mass, pos, vel, pole]))
+            val = all([length, mass, pos, vel, pole])
+            return val
+
     def __mul__(self, other):
         """
         Multiply a pendulum object by a scalar value.

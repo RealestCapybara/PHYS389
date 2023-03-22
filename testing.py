@@ -5,6 +5,11 @@ import unittest
 
 class TestPendulumMethods(unittest.TestCase):
 
+    def test_eq(self):
+        p1 = Pendulum(length=10, mass=1, pos=[0.5, 0.5], vel=[0.1, 0.1])
+        p2 = Pendulum(length=10, mass=1, pos=[0.5, 0.5], vel=[0.1, 0.1])
+        self.assertEqual(p1, p2)
+
     def test_add(self):
         p1 = Pendulum(length=10, mass=1, pos=[0.5, 0.5], vel=[0.1, 0.1])
         p2 = Pendulum(length=10, mass=1, pos=[0.6, 0.7], vel=[0.2, 0.3])
