@@ -110,38 +110,25 @@ def plotValues(data, settings):
         pList = v.pList
         for key, value in settings["plot"].items():
             if (lambda x: any(x) if isinstance(x, list) else x)(value):
-                if key == 'x':
-                    newVal = [p.toCartesian() for p in pList]
-                    newVal = [[p[i] if val else None
-                               for i, val in enumerate(value)] for p in newVal]
-                    newVal = np.array(newVal).transpose()
 
-                if key == 'v':
-                    newVal = [p.Velocity() for p in pList]
-                    newVal = [[p[i] if val else None
-                               for i, val in enumerate(value)] for p in newVal]
-                    newVal = np.array(newVal).transpose()
-
-                if key == 'pos':
-                    newVal = [p.pos for p in pList]
-                    newVal = [[p[i] if val else None
-                               for i, val in enumerate(value)] for p in newVal]
-                    newVal = np.array(newVal).transpose()
-
-                if key == 'vel':
-                    newVal = [p.vel for p in pList]
+                keyfuncs1 = {'x': (lambda p: p.toCartesian()),
+                          'v': (lambda p: p.Velocity()),
+                          'pos': (lambda p: p.pos),
+                          'vel': (lambda p: p.vel)}
+                if key in keyfuncs1.keys():
+                    newVal = [keyfuncs1[key](p) for p in pList]
                     newVal = [[p[i] if val else None
                                for i, val in enumerate(value)] for p in newVal]
                     newVal = np.array(newVal).transpose()
 
                 if key == 'pole':
                     newVal = [p.zPolar if value else None for p in pList]
-                if key == 'KE':
-                    newVal = (lambda sys: sys.KE() if value else None)(v)
-                if key == 'PE':
-                    newVal = (lambda sys: sys.PE() if value else None)(v)
-                if key == 'totalE':
-                    newVal = (lambda sys: sys.PE() + sys.KE()
+
+                keyfuncs2 = {'KE': (lambda sys: sys.KE()),
+                             'PE': (lambda sys: sys.PE()),
+                             'totalE': (lambda sys: sys.KE()+sys.PE())}
+                if key in keyfuncs2.keys():
+                    newVal = (lambda sys: keyfuncs2[key](sys)
                               if value else None)(v)
 
         if settings['plot']['KE']:
