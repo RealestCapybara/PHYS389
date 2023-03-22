@@ -35,12 +35,16 @@ class TestPendulumMethods(unittest.TestCase):
         p1 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0, 0])
         p2 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
         p3 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0])
+        p4 = Pendulum(length=10, mass=1, pos=[np.pi/2, np.pi/2], vel=[0, 0])
 
         q1 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0, 0], zPolar=False)
         q2 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0],
                       zPolar=False)
         q3 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0],
                       zPolar=False)
+        q4 = Pendulum(length=10, mass=1, pos=[np.pi/2, np.pi/2], vel=[0, 0],
+                      zPolar=False)
+
 
         self.assertTrue(
             arrayAlmostEqual(p1.dT(), np.array([10, 0, 0])) is None)
@@ -48,6 +52,8 @@ class TestPendulumMethods(unittest.TestCase):
             arrayAlmostEqual(p2.dT(), np.array([0, 0, 10])) is None)
         self.assertTrue(
             arrayAlmostEqual(p3.dT(), np.array([0, 10, 0])) is None)
+        #self.assertTrue(
+        #    arrayAlmostEqual(p4.dT(), np.array([0, 0, 10])) is None)
 
         self.assertTrue(
             arrayAlmostEqual(q1.dT(), np.array([0, 10, 0])) is None)
@@ -55,6 +61,41 @@ class TestPendulumMethods(unittest.TestCase):
             arrayAlmostEqual(q2.dT(), np.array([-10, 0, 0])) is None)
         self.assertTrue(
             arrayAlmostEqual(q3.dT(), np.array([0, 0, 10])) is None)
+        #self.assertTrue(
+        #    arrayAlmostEqual(q4.dT(), np.array([-10, 0, 0])) is None)
+
+
+    def test_dP(self):
+        p1 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0, 0])
+        p2 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
+        p3 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0])
+        p4 = Pendulum(length=10, mass=1, pos=[np.pi/2, np.pi/2], vel=[0, 0])
+
+        q1 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0, 0], zPolar=False)
+        q2 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0],
+                      zPolar=False)
+        q3 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0],
+                      zPolar=False)
+        q4 = Pendulum(length=10, mass=1, pos=[np.pi/2, np.pi/2], vel=[0, 0],
+                      zPolar=False)
+
+        self.assertTrue(
+            arrayAlmostEqual(p1.dP(), np.array([0, 0, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p2.dP(), np.array([0, 10, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p3.dP(), np.array([0, 0, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p4.dP(), np.array([-10, 0, 0])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(q1.dP(), np.array([0, 0, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(q2.dP(), np.array([0, 0, 10])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(q3.dP(), np.array([0, 0, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(q4.dP(), np.array([0, -10, 0])) is None)
 
 
 if __name__ == "__main__":
