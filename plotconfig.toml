@@ -1,0 +1,20 @@
+[system]
+#filename to gather data from (previously simulated pickle)
+filename="test"
+#whether to give a 2D diagnostic plot (false), or a 3D animated plot (true)
+anim=false
+    [system.plot]
+    # cartesian position
+    x = [true, true, true]
+    # cartesian velocity
+    v = [false, false, false]
+    #angles [theta, phi]
+    pos = [false, false]
+    #angular speeds [thetadot, phidot]
+    vel = [false, false]
+    #coordinate basis
+    pole = false
+    #Total kinetic, total potential, and total mechanical energy.
+    KE = false
+    PE = false
+    totalE = false

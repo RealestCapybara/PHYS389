@@ -4,11 +4,7 @@ from Chain import Chain
 import tomllib as toml
 import pickle
 from tqdm import tqdm
-
-with open("config.toml", "rb") as f:
-    data = toml.load(f)
-
-print(data['system']['pendula'][0])
+from copy import deepcopy
 
 def genPList(data):
     try:
@@ -140,14 +136,10 @@ def SystemValues(data):
     return g, timedelta, steps, filename
 
 
+if __name__ == '__main__':
 
-g, timedelta, steps, filename = SystemValues(data)
-
-pList = genPList(data)
-
-print(Chain(pList=pList, g=g))
-
-if __name__ != '__main__':
+    with open("config.toml", "rb") as f:
+        data = toml.load(f)
 
     pList = genPList(data)
 
@@ -157,10 +149,12 @@ if __name__ != '__main__':
     System.fixCoords()
     SystemEveryTick = [timedelta]
 
-    for i in tqdm(range(steps), desc="Simulating...":
-        SystemEveryTick.append(System)
+    for i in tqdm(range(steps), desc="Simulating..."):
+        SystemEveryTick.append(deepcopy(System))
         System.RK4(timedelta)
         System.fixCoords()
+    for sys in SystemEveryTick[:10]:
+        print(sys)
 
     print(f"Saving to {filename}.pickle...")
 

@@ -1,18 +1,10 @@
 import numpy as np
 from Chain import Chain
 from Pendulum import Pendulum
-import matplotlib.plt as plt
+import matplotlib.pyplot as plt
 import pickle
 import tomllib as toml
 
-filename="test"
-
-with open(f"{filename}.pickle", 'rb') as file:
-    data = pickle.load(file)
-
-timestep = data[0]
-
-data = data[1:]
 
 def checkSettings(settings):
     try:
@@ -105,66 +97,87 @@ def checkSettings(settings):
         raise TypeError("'vel' must only contain boolean values")
 
 def plotValues(data, settings):
-    States = []
-    for i, v in enumerate(data):
-        pList = v.pList
-        for key, value in settings["plot"].items():
-            if (lambda x: any(x) if isinstance(x, list) else x)(value):
+    """Returns a dict with the values to plot."""
 
-                keyfuncs1 = {'x': (lambda p: p.toCartesian()),
-                          'v': (lambda p: p.Velocity()),
-                          'pos': (lambda p: p.pos),
-                          'vel': (lambda p: p.vel)}
+    #THIS ALL NEEDS WORK - VERY CLUNKY AND DIFFICULT TO UNDERSTAND
+    #ensure unit testing is finished before coming back to improve.
+    FrameDict = {}
+    #iterates through each frame and collects v, the system element and i, the frame
+    for i, v in enumerate(data):
+        #gets the list of pendula in the given frame
+        pList = v.pList
+        #iterates through the settings to check each value
+        for key, value in settings["plot"].items():
+            #checks if setting have a given diagnostic value listed as true.
+            if (lambda x: any(x) if isinstance(x, list) else x)(value):
+                #holds the relevant generation functions and the final dictionary keys in a dict associated with the respective settings key
+                #this is done to avoid repetetive code
+                keyfuncs1 = {
+                          'x': [(lambda p: p.toCartesian()), ('x', 'y', 'z')],
+                          'v': [(lambda p: p.Velocity()), ('vx', 'vy', 'vz')],
+                          'pos': [(lambda p: p.pos), ('theta', 'phi')],
+                          'vel': [(lambda p: p.vel), ('thetadot', 'phidot')]}
+                #if the 'true' key is in the list of keys, then this code can be executed
                 if key in keyfuncs1.keys():
-                    newVal = [keyfuncs1[key](p) for p in pList]
+                    #creates a 2D list containing the final values for each pendulum (row)
+                    newVal = [keyfuncs1[key][0](p) for p in pList]
+                    #replaces the values with a None value if the specific coordinate is specified as false in settings
                     newVal = [[p[i] if val else None
                                for i, val in enumerate(value)] for p in newVal]
-                    newVal = np.array(newVal).transpose()
-
+                    #puts the values into a dictionary element with a key for each combiantion of desired value and pendulum.
+                    dictElement = {f"{coord}{pi}":[newVal[pi][ci]]
+                                   for pi in range(len(newVal))
+                                   for ci, coord in enumerate(
+                                       keyfuncs1[key][1])}
+                #another value. This key acts differently to all others, so is treated seperately.
                 if key == 'pole':
-                    newVal = [p.zPolar if value else None for p in pList]
-
+                    #checks what coordinate basis the pendula are using, and if they are in the z-basis, puts a 10, -10 otherwise.
+                    newVal = [(lambda b: 10 if b else -10)(p.zPolar)
+                              for p in pList]
+                    #creates a dictionary element, with a key for each pendulum
+                    dictElement = {f"whichPole{pi}":[v] for pi, v, in enumerate(newVal)}
+                #stores three functions in a dictionary. This is done to avoid repetetive code.
                 keyfuncs2 = {'KE': (lambda sys: sys.KE()),
                              'PE': (lambda sys: sys.PE()),
                              'totalE': (lambda sys: sys.KE()+sys.PE())}
+                #checks if the key is in this second set of grouped functions
                 if key in keyfuncs2.keys():
-                    newVal = (lambda sys: keyfuncs2[key](sys)
-                              if value else None)(v)
+                    #as these are functions applied to the entire system, only one value needs to be stored.
+                    newVal = keyfuncs2[key](v)
+                    dictElement = {key: [newVal]}
 
-        if settings['plot']['KE']:
-            T = v.KE()
-        if settings[]
-        V = v.PE()
-        E = T + P
-        xs = []
-        ys = []
-        zs = []
-        vxs = []
-        vys = []
-        vzs = []
-        thetas = []
-        phis = []
-        thetadots = []
-        phidots = []
-        poles = []
-        for p in pList:
-            x, y, z = p.toCartesian()
-            vx, vy, vz = p.Velocity()
-            theta = p.pos[0]
-            phi = p.pos[1]
-            thetadot = p.vel[0]
-            phidot = p.vel[1]
-            whichPole = (lambda x: 10 if x.zPolar==True else -10)(p)
-            xs.append(x)
-            ys.append(y)
-            zs.append(z)
-            vxs.append(vx)
-            vys.append(vy)
-            vzs.append(vz)
-            thetas.append(theta)
-            phis.append(phi)
-            thetadots.append(thetadot)
-            phidots.append(phidot)
-            poles.append(whichPole)
+                #if the keys of the dictionary element are a subset of the desired dictionary for the entire simulation, then the keys have already been added.
+                if not set(dictElement.keys()) <= set(FrameDict.keys()):
+                    #if the keys dont exist in the main dictionary, it is simply updated with these new values.
+                    FrameDict.update(dictElement)
+                else:
+                    #otherwise, the new elements are simply added onto the existing values, such that the values for that key can be iterated through for plotting.
+                    for key, value in dictElement.items():
+                        FrameDict[key].extend(value)
 
+    return FrameDict
 
+if __name__ == "__main__":
+    with open("plotconfig.toml", 'rb') as file:
+        settings = toml.load(file)
+
+    checkSettings(settings)
+
+    settings = settings['system']
+    filename = settings['filename']
+
+    with open(f"{filename}.pickle", 'rb') as file:
+        data = pickle.load(file)
+
+    timedelta = data[0]
+    data = data[1:]
+    for sys in data[:10]:
+        print(sys)
+    steps = len(data)
+    t = np.arange(0, steps*timedelta, timedelta)
+    dictionary = plotValues(data, settings)
+
+    for key, value in dictionary.items():
+        plt.plot(t, value, label=key)
+    plt.legend()
+    plt.show()
