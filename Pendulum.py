@@ -147,10 +147,8 @@ pos={self.pos}, vel={self.vel}, zPolar={self.zPolar})"
         else:
             length = self.length == other.length
             mass = self.mass == other.mass
-            pos = all([round(i,16) == round(j,16) for i, j in
-                       zip(self.pos, other.pos)])
-            vel = all([round(i, 16) == round(j, 16) for i, j in
-                       zip(self.vel, other.vel)])
+            pos = all([i == j for i, j in zip(self.pos, other.pos)])
+            vel = all([i == j for i, j in zip(self.vel, other.vel)])
             pole = self.zPolar == other.zPolar
             val = all([length, mass, pos, vel, pole])
             return val
@@ -237,6 +235,18 @@ pos={self.pos}, vel={self.vel}, zPolar={self.zPolar})"
                      mass=self.mass, length=self.length,zPolar=self.zPolar)
 
         return Q
+
+    def __sub__(self, other):
+        if not isinstance(other, Pendulum):
+            raise TypeError("Pendulum objects can only be subtracted from \
+other Pendulum objects")
+        print(self + -1*other)
+        return self + -1*other
+
+    def __abs__(self):
+        val = abs(self.pos[0]) + abs(self.vel[0]) + abs(self.pos[1]) +\
+            abs(self.vel[1])
+        return val
 
     def dT(self):
         """
