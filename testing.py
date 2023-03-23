@@ -283,6 +283,66 @@ class TestPendulumMethods(unittest.TestCase):
         self.assertTrue(
             arrayAlmostEqual(q2.Velocity(), np.array([0, 10, 0])) is None)
 
+    def test_toCartesian(self):
+        #positive z
+        p1 = Pendulum(length=10, mass=1, pos=[np.pi, 0], vel=[0, 0])
+        #positive x
+        p2 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0,0])
+        #positive y
+        p3 = Pendulum(length=10, mass=1, pos=[np.pi/2, np.pi/2], vel=[0,0])
+        #negative z
+        p4 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0, 0])
+        #negative x
+        p5 = Pendulum(length=10, mass=1, pos=[np.pi/2, np.pi], vel=[0,0])
+        #negative y
+        p6 = Pendulum(length=10, mass=1, pos=[np.pi/2, -np.pi/2], vel=[0,0])
+
+        #positive z
+        q1 = Pendulum(length=10, mass=1, pos=[np.pi/2, np.pi/2], vel=[0, 0],
+                      zPolar=False)
+        #positive x
+        q2 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0,0],
+                      zPolar=False)
+        #positive y
+        q3 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0,0],
+                      zPolar=False)
+        #negative z
+        q4 = Pendulum(length=10, mass=1, pos=[np.pi/2, -np.pi/2], vel=[0, 0],
+                      zPolar=False)
+        #negative x
+        q5 = Pendulum(length=10, mass=1, pos=[np.pi, 0], vel=[0,0],
+                      zPolar=False)
+        #negative y
+        q6 = Pendulum(length=10, mass=1, pos=[np.pi/2, np.pi], vel=[0,0],
+                      zPolar=False)
+
+        self.assertTrue(
+            arrayAlmostEqual(p1.toCartesian(), np.array([0, 0, 10])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p2.toCartesian(), np.array([10, 0, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p3.toCartesian(), np.array([0, 10, 0])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(p4.toCartesian(), np.array([0, 0, -10])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p5.toCartesian(), np.array([-10, 0, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p6.toCartesian(), np.array([0, -10, 0])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(q1.toCartesian(), np.array([0, 0, 10])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(q2.toCartesian(), np.array([10, 0, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(q3.toCartesian(), np.array([0, 10, 0])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(q4.toCartesian(), np.array([0, 0, -10])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(q5.toCartesian(), np.array([-10, 0, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(q6.toCartesian(), np.array([0, -10, 0])) is None)
 
 
 if __name__ == "__main__":
