@@ -431,9 +431,110 @@ class TestChainMethods(unittest.TestCase):
 
         p3 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0, 0])
         p4 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
-        c2 = Chain(pList = [p1, p2], g=9.81)
+        c2 = Chain(pList = [p3, p4], g=9.81)
 
         self.assertTrue(c1 == c2)
+
+    def test_mul(self):
+        p1 = Pendulum(length=10, mass=1, pos=[0.3, 0.5], vel=[0.7, 1.1])
+        p2 = Pendulum(length=10, mass=1, pos=[1.3, 1.7], vel=[1.9, 2.3])
+        c1 = Chain(pList = [p1, p2], g=9.81)
+
+        p3 = Pendulum(length=10, mass=1, pos=[0.6, 1.0], vel=[1.4, 2.2])
+        p4 = Pendulum(length=10, mass=1, pos=[2.6, 3.4], vel=[3.8, 4.6])
+        c2 = Chain(pList = [p3, p4], g=9.81)
+
+        self.assertEqual(c2, c1*2)
+        self.assertEqual(0.5*c2, c1)
+
+    def test_add(self):
+        p1 = Pendulum(length=10, mass=1, pos=[0.03, 0.05], vel=[0.07, 0.11])
+        p2 = Pendulum(length=10, mass=1, pos=[0.13, 0.17], vel=[0.19, 0.23])
+        c1 = Chain(pList = [p1, p2], g=9.81)
+
+        p3 = Pendulum(length=10, mass=1, pos=[0.06, 0.10], vel=[0.14, 0.22])
+        p4 = Pendulum(length=10, mass=1, pos=[0.26, 0.34], vel=[0.38, 0.46])
+        c2 = Chain(pList = [p3, p4], g=9.81)
+
+        p5 = Pendulum(length=10, mass=1, pos=[0.09, 0.15], vel=[0.21, 0.33])
+        p6 = Pendulum(length=10, mass=1, pos=[0.39, 0.51], vel=[0.57, 0.69])
+        c3 = Chain(pList = [p5, p6], g=9.81)
+
+        self.assertAlmostEqual((c1+c2), c3)
+
+    def test_AElement(self):
+        p1 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
+        p2 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0])
+        p3 = Pendulum(length=10, mass=1, pos=[np.pi/4, np.pi], vel=[0, 0])
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p1, p1),
+                             100*np.array([[1,0],[0,1]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p2, p2),
+                             100*np.array([[1,0],[0,0]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p3, p3),
+                             100*np.array([[1,0],[0,1/2]])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p1, p2),
+                             100*np.array([[0,0],[1,0]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p2, p1),
+                             100*np.array([[0,1],[0,0]])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p1, p3),
+                             50*np.sqrt(2)*np.array([[1,0],[0,-1]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p3, p1),
+                             50*np.sqrt(2)*np.array([[1,0],[0,-1]])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p2, p3),
+                             -50*np.sqrt(2)*np.array([[0,1],[0,0]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p3, p2),
+                             -50*np.sqrt(2)*np.array([[0,0],[1,0]])) is None)
+
+    def test_BElement(self):
+        p1 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
+        p2 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0])
+        p3 = Pendulum(length=10, mass=1, pos=[np.pi/4, np.pi], vel=[0, 0])
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._BElement(p1, p1),
+                             100*np.array([[0,0,0],[0,0,0]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._BElement(p2, p2),
+                             100*np.array([[0,0,0],[0,0,0]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._BElement(p3, p3),
+                             50*np.array([[0,0,-1],[0,1,0]])) is None)
+
+        #WORK ON THESE
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p1, p2),
+                             100*np.array([[0,0],[1,0]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p2, p1),
+                             100*np.array([[0,1],[0,0]])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p1, p3),
+                             50*np.sqrt(2)*np.array([[1,0],[0,-1]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p3, p1),
+                             50*np.sqrt(2)*np.array([[1,0],[0,-1]])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p2, p3),
+                             -50*np.sqrt(2)*np.array([[0,1],[0,0]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p3, p2),
+                             -50*np.sqrt(2)*np.array([[0,0],[1,0]])) is None)
 
 
 if __name__ == "__main__":

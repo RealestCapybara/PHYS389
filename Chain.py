@@ -195,7 +195,7 @@ Chain can only be multiplied with float-like types")
         return self.__add__(other)
 
     def __sub__(self, other):
-        if not isinstance(other, Pendulum):
+        if not isinstance(other, Chain):
             raise TypeError("\
 Chain can only be subtracted from other Chain objects")
         return self + -1*other
@@ -223,6 +223,10 @@ p{i}: pos=({v.pos[0]/np.pi:.4f} pi, {v.pos[1]/np.pi:.4f} pi) \
 vel=({v.vel[0]/np.pi:.4f} pi, {v.vel[1]/np.pi:.4f} pi) \
 pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
                                     for i, v in enumerate(self.pList)])
+
+    def __repr__(self):
+        pList = '\n'.join([repr(p) for p in self.pList])
+        return "Chain(g={0}, pList=[\n{1}])".format(self.g, pList)
 
     @staticmethod
     def _AElement(p1, p2):
