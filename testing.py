@@ -243,5 +243,47 @@ class TestPendulumMethods(unittest.TestCase):
         self.assertAlmostEqual(q3.dzdP(), 0)
         self.assertAlmostEqual(q4.dzdP(), 0)
 
+    def test_Velocity(self):
+        #pendulum is parallel to the x-axis, with perpendicular angular
+        #velocity in the positive z direction
+        p1 = Pendulum(length=10, mass=1, pos=[np.pi/2,0], vel=[1,0])
+        #same position but with a perpendicular angular velocity in the
+        #direction of positive y
+        p2 = Pendulum(length=10, mass=1, pos=[np.pi/2,0], vel=[0,1])
+        #same position but both azimuthal and polar velocity. should result in
+        #combination of p1 and p2
+        p3 = Pendulum(length=10, mass=1, pos=[np.pi/2,0], vel=[1,1])
+        #pendulum is parallel to the y-axis, velocity in the negative z
+        #direction
+        p4 = Pendulum(length=10, mass=1, pos=[np.pi/2,np.pi/2], vel=[-1,0])
+        #same position as before but velocity is in the positive x direction
+        p5 = Pendulum(length=10, mass=1, pos=[np.pi/2,np.pi/2], vel=[0,-1])
+
+        #pendulum is parallel to the negative z-axis, has velocity in the
+        #direction of positive x
+        q1 = Pendulum(length=10, mass=1, pos=[-np.pi/2,np.pi/2], vel=[1, 0],
+                      zPolar=False)
+        #same position as q2 with a velocity in the direction of positive y
+        q2 = Pendulum(length=10, mass=1, pos=[-np.pi/2,np.pi/2], vel=[0, 1],
+                      zPolar=False)
+
+        self.assertTrue(
+            arrayAlmostEqual(p1.Velocity(), np.array([0, 0, 10])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p2.Velocity(), np.array([0, 10, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p3.Velocity(), np.array([0, 10, 10])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p4.Velocity(), np.array([0, 0, -10])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p5.Velocity(), np.array([10, 0, 0])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(q1.Velocity(), np.array([10, 0, 0])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(q2.Velocity(), np.array([0, 10, 0])) is None)
+
+
+
 if __name__ == "__main__":
     unittest.main()
