@@ -88,6 +88,16 @@ class Chain():
         self.pList = pList
         self.g = np.float64(g)
 
+    def __eq__(self, other):
+        if not isinstance(other, Chain):
+            return False
+        elif len(self.pList) != len(other.pList):
+            return False
+        else:
+            pListBool = all([i==j for i, j in zip(self.pList, other.pList)])
+            gBool = self.g == other.g
+            return pListBool and gBool
+
     def __mul__(self, other):
         """Multiply a Chain object with a scalar value.
 
@@ -179,10 +189,19 @@ Chain can only be multiplied with float-like types")
         elif not other:
             return self
         else:
-            raise TypeError("Chain can only be added to other Mat objects")
+            raise TypeError("Chain can only be added to other Chain objects")
 
     def __radd__(self, other):
         return self.__add__(other)
+
+    def __sub__(self, other):
+        if not isinstance(other, Pendulum):
+            raise TypeError("\
+Chain can only be subtracted from other Chain objects")
+        return self + -1*other
+
+    def __abs__(self):
+        return sum([abs(p) for p in self.pList])
 
     def __str__(self):
         """

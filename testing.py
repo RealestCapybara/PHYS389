@@ -422,6 +422,19 @@ class TestPendulumMethods(unittest.TestCase):
             self.assertEqual(Q.zPolar, not P.zPolar)
 
 
+class TestChainMethods(unittest.TestCase):
+
+    def test_eq(self):
+        p1 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0, 0])
+        p2 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
+        c1 = Chain(pList = [p1, p2], g=9.81)
+
+        p3 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0, 0])
+        p4 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
+        c2 = Chain(pList = [p1, p2], g=9.81)
+
+        self.assertTrue(c1 == c2)
+
 
 if __name__ == "__main__":
     unittest.main()
