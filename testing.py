@@ -4,7 +4,9 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal as arrayAlmostEqual
 from numpy.testing import assert_array_equal as arrayEqual
 import unittest
-import random as rand
+import random as r
+from random import random as rand
+from copy import deepcopy
 
 class TestPendulumMethods(unittest.TestCase):
 
@@ -343,6 +345,82 @@ class TestPendulumMethods(unittest.TestCase):
             arrayAlmostEqual(q5.toCartesian(), np.array([-10, 0, 0])) is None)
         self.assertTrue(
             arrayAlmostEqual(q6.toCartesian(), np.array([0, -10, 0])) is None)
+
+    def test_fixCoord_rangeCorrection(self):
+        #pendulum in the x-position, ideal encoding
+        p1 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
+        #pendulum is in the x-position with phase shifts of 2pi and 4pi
+        p2 = Pendulum(length=10, mass=1, pos=[2*np.pi + np.pi/2, 4*np.pi],
+                      vel=[0,0])
+        #also in the x-position but theta is outside of the desired range
+        #of [0, pi) (duplicate coordinates)
+        p3 = Pendulum(length=10, mass=1, pos=[3*np.pi/2, -np.pi], vel=[0,0])
+
+        #proving that both p2 and p3 do not have the same attributes as p1, and
+        #that all 3 are different pendula.
+        self.assertFalse(p1 == p2)
+        self.assertFalse(p3 == p1)
+        self.assertFalse(p2 == p3)
+
+        #proving that despite being different all three pendula give the same
+        #cartesian position when .toCartesian() is called.
+        self.assertTrue(
+            arrayAlmostEqual(p1.toCartesian(),p2.toCartesian()) is None)
+        self.assertTrue(
+            arrayAlmostEqual(p3.toCartesian(),p1.toCartesian()) is None)
+
+        #ensures that fixCoord does nothing if the pendulum is sufficiently 
+        #far from a pole, and theta and phi are in the ranges [0, 2pi) and 
+        #[0, pi) respectively.
+        testP = deepcopy(p1)
+        p1.fixCoord()
+        self.assertEqual(p1, testP)
+
+        #checks if .fixCoord() corrects for phase shifts which are multiples of
+        #2 pi. Checking if p2 is corrected to be equal to p1
+        p2.fixCoord()
+        self.assertEqual(p2, p1)
+
+        #checks if .fixCoord() corrects for theta being outside of the range
+        #[0, pi) such that the pendula gets corrected to the same 'effective'
+        #value. Basically checks if fixCoord() corrects for duplicate values.
+        p3.fixCoord()
+        self.assertEqual(p3, p1)
+
+    def test_fixCoord_Transformation(self):
+        #as the specific position and velocity shouldn't matter, this loops
+        #over 500 random Pendulum objects and tranforms them, then checks that
+        #the cartesian position and velocity aren't changed by the transform-
+        #ation.
+        for i in range(50):
+            #creates a random value of theta between 0 and 1/6pi or 5/6pi and
+            #pi
+            theta = np.pi*(lambda a: a if a > 0 else a + 1)(
+                r.uniform(-1/6,1/6))
+            #a random azimuthal angle between 0 and 2pi
+            phi = r.uniform(0, 2*np.pi)
+            #range matters a bit less for angular speeds, so its just from 0
+            #to 10.
+            thetadot = r.uniform(0, 10)
+            phidot = r.uniform(0, 10)
+            #randomly pick which coordinate basis is used.
+            pole = r.choice([True, False])
+
+            #random attribute pendulum. Mass is chosen to track the iteration
+            #in the case of an error.
+            P = Pendulum(length=10, mass=i+1, pos=[theta, phi],
+                         vel=[thetadot, phidot], zPolar=pole)
+            Q = deepcopy(P)
+            P.fixCoord()
+
+            #ensuring the cartesian positon and velocity are unchanged.
+            self.assertTrue(
+                arrayAlmostEqual(P.toCartesian(), Q.toCartesian()) is None)
+            self.assertTrue(
+                arrayAlmostEqual(P.Velocity(), Q.Velocity()) is None)
+            #ensuring that the pendulum has transformed.
+            self.assertEqual(Q.zPolar, not P.zPolar)
+
 
 
 if __name__ == "__main__":
