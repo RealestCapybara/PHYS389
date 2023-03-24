@@ -463,10 +463,13 @@ class TestChainMethods(unittest.TestCase):
         self.assertAlmostEqual((c1+c2), c3)
 
     def test_AElement(self):
+        #three pendula with different positions, to be used as reference.
         p1 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
         p2 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0])
         p3 = Pendulum(length=10, mass=1, pos=[np.pi/4, np.pi], vel=[0, 0])
 
+        #every combination of the pendula is tested against a pre-calculated
+        #result.
         self.assertTrue(
             arrayAlmostEqual(Chain._AElement(p1, p1),
                              100*np.array([[1,0],[0,1]])) is None)
@@ -498,11 +501,50 @@ class TestChainMethods(unittest.TestCase):
             arrayAlmostEqual(Chain._AElement(p3, p2),
                              -50*np.sqrt(2)*np.array([[0,0],[1,0]])) is None)
 
+        #three more pendula with the same values of theta and phi as their
+        #respective 'p' pendula but in the other coordinate basis. If the
+        #mathematics is consistent, the result of combining these pendula
+        #should be the same as the other pendula, as the two coordinate basis
+        #can be transformed between each other with an orthogonal matrix,
+        #so inner products should be conserved.
+        q1 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0],
+                      zPolar=False)
+        q2 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0],
+                      zPolar=False)
+        q3 = Pendulum(length=10, mass=1, pos=[np.pi/4, np.pi], vel=[0, 0],
+                      zPolar=False)
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p1, p1),
+                             Chain._AElement(q1, q1)) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p2, p2),
+                             Chain._AElement(q2, q2)) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p3, p3),
+                             Chain._AElement(q3, q3)) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p1, p2),
+                             Chain._AElement(q1, q2)) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p2, p1),
+                             Chain._AElement(q2, q1)) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p1, p3),
+                             Chain._AElement(q1, q3)) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p3, p1),
+                             Chain._AElement(q3, q1)) is None)
+
     def test_BElement(self):
+        #three pendula with different theta and phi values, to be used as
+        #reference.
         p1 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
         p2 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0])
         p3 = Pendulum(length=10, mass=1, pos=[np.pi/4, np.pi], vel=[0, 0])
 
+        #every combination of p1, p2, and p3 is tested against a pre-calculated
+        #result
         self.assertTrue(
             arrayAlmostEqual(Chain._BElement(p1, p1),
                              100*np.array([[0,0,0],[0,0,0]])) is None)
@@ -513,29 +555,194 @@ class TestChainMethods(unittest.TestCase):
             arrayAlmostEqual(Chain._BElement(p3, p3),
                              50*np.array([[0,0,-1],[0,1,0]])) is None)
 
-        #WORK ON THESE
+        self.assertTrue(
+            arrayAlmostEqual(Chain._BElement(p1, p2),
+                             100*np.array([[1,0,0],[0,0,0]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._BElement(p2, p1),
+                             100*np.array([[0,0,0],[0,0,0]])) is None)
 
+        self.assertTrue(
+            arrayAlmostEqual(Chain._BElement(p1, p3), 50*np.sqrt(2)*
+                             np.array([[1,0,0],[0,-1,0]]))is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._BElement(p3, p1),50*np.sqrt(2)*\
+                             np.array([[1,0,1],[0,0,0]])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._BElement(p2, p3),-50*np.sqrt(2)*
+                             np.array([[0,1,0],[0,0,0]])) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._BElement(p3, p2),50*np.sqrt(2)*
+                             np.array([[1,1,0],[0,0,0]])) is None)
+
+        #three more pendula with the same values of theta and phi as their
+        #respective 'p' pendula but in the other coordinate basis. If the
+        #mathematics is consistent, the result of combining these pendula
+        #should be the same as the other pendula, as the two coordinate basis
+        #can be transformed between each other with an orthogonal matrix,
+        #so inner products should be conserved.
+        q1 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0],
+                      zPolar=False)
+        q2 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0],
+                      zPolar=False)
+        q3 = Pendulum(length=10, mass=1, pos=[np.pi/4, np.pi], vel=[0, 0],
+                      zPolar=False)
+
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p1, p1),
+                             Chain._AElement(q1, q1)) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p2, p2),
+                             Chain._AElement(q2, q2)) is None)
+        self.assertTrue(
+            arrayAlmostEqual(Chain._AElement(p3, p3),
+                             Chain._AElement(q3, q3)) is None)
         self.assertTrue(
             arrayAlmostEqual(Chain._AElement(p1, p2),
-                             100*np.array([[0,0],[1,0]])) is None)
+                             Chain._AElement(q1, q2)) is None)
         self.assertTrue(
             arrayAlmostEqual(Chain._AElement(p2, p1),
-                             100*np.array([[0,1],[0,0]])) is None)
-
+                             Chain._AElement(q2, q1)) is None)
         self.assertTrue(
             arrayAlmostEqual(Chain._AElement(p1, p3),
-                             50*np.sqrt(2)*np.array([[1,0],[0,-1]])) is None)
+                             Chain._AElement(q1, q3)) is None)
         self.assertTrue(
             arrayAlmostEqual(Chain._AElement(p3, p1),
-                             50*np.sqrt(2)*np.array([[1,0],[0,-1]])) is None)
+                             Chain._AElement(q3, q1)) is None)
+
+
+    def test_Matrices(self):
+        p1 = Pendulum(length=10, mass=100, pos=[3.45610, 0.0365], vel=[0, 0])
+        p2 = Pendulum(length=10, mass=50, pos=[1, 4], vel=[0, 0])
+        p3 = Pendulum(length=10, mass=30, pos=[np.pi/4, np.pi], vel=[0, 0])
+        c1 = Chain(pList=[p1, p2, p3], g=9.81)
+
+        #creates a two matrices out of _AElement and _BElement
+        A, B = c1._Matrices()
+
+        #checks every block of A and B to check that they're a matrix block
+        #element scaled by the sum of the masses of pendula with equal or
+        #greater index
+
+        #this element only includes p1 and so the block elements are scaled by
+        #the sum of p1.mass, p2.mass, and p3.mass
+        self.assertTrue(
+            arrayEqual(A[0:2,0:2], 180*Chain._AElement(p1,p1)) is None)
+        self.assertTrue(
+            arrayEqual(B[0:2,0:3], 180*Chain._BElement(p1,p1)) is None)
+
+        #this element includes p2, so the mass of p1 cannot be included, so the
+        #scaling factor is only 80
+        self.assertTrue(
+            arrayEqual(A[2:4,0:2], 80*Chain._AElement(p2,p1)) is None)
+        self.assertTrue(
+            arrayEqual(B[2:4,0:3], 80*Chain._BElement(p2,p1)) is None)
+
+        #as this element includes p3, it can only be scaled by the mass of p3
+        self.assertTrue(
+            arrayEqual(A[4:6,0:2], 30*Chain._AElement(p3,p1)) is None)
+        self.assertTrue(
+            arrayEqual(B[4:6,0:3], 30*Chain._BElement(p3,p1)) is None)
+
+        #second 'row' of block elements
+        self.assertTrue(
+            arrayEqual(A[0:2,2:4], 80*Chain._AElement(p1,p2)) is None)
+        self.assertTrue(
+            arrayEqual(B[0:2,3:6], 80*Chain._BElement(p1,p2)) is None)
 
         self.assertTrue(
-            arrayAlmostEqual(Chain._AElement(p2, p3),
-                             -50*np.sqrt(2)*np.array([[0,1],[0,0]])) is None)
+            arrayEqual(A[2:4,2:4], 80*Chain._AElement(p2,p2)) is None)
         self.assertTrue(
-            arrayAlmostEqual(Chain._AElement(p3, p2),
-                             -50*np.sqrt(2)*np.array([[0,0],[1,0]])) is None)
+            arrayEqual(B[2:4,3:6], 80*Chain._BElement(p2,p2)) is None)
 
+        self.assertTrue(
+            arrayEqual(A[4:6,2:4], 30*Chain._AElement(p3,p2)) is None)
+        self.assertTrue(
+            arrayEqual(B[4:6,3:6], 30*Chain._BElement(p3,p2)) is None)
+
+        #third 'row' of block elements
+        self.assertTrue(
+            arrayEqual(A[0:2,4:6], 30*Chain._AElement(p1,p3)) is None)
+        self.assertTrue(
+            arrayEqual(B[0:2,6:9], 30*Chain._BElement(p1,p3)) is None)
+
+        self.assertTrue(
+            arrayEqual(A[2:4,4:6], 30*Chain._AElement(p2,p3)) is None)
+        self.assertTrue(
+            arrayEqual(B[2:4,6:9], 30*Chain._BElement(p2,p3)) is None)
+
+        self.assertTrue(
+            arrayEqual(A[4:6,4:6], 30*Chain._AElement(p3,p3)) is None)
+        self.assertTrue(
+            arrayEqual(B[4:6,6:9], 30*Chain._BElement(p3,p3)) is None)
+
+    def test_GVec(self):
+        p1 = Pendulum(length=10, mass=5, pos=[np.pi/2, 0], vel=[0, 0])
+        p2 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0, 0])
+        c1 = Chain(pList=[p1, p2], g=9.81)
+
+        V1 = c1._GVec()
+        V2 = np.array([9.81*6*10, 0, 0, 0])
+
+        self.assertTrue(
+            arrayAlmostEqual(V1, V2) is None)
+
+        p3 = Pendulum(length=10, mass=5, pos=[np.pi/2, 0], vel=[0, 0])
+        p4 = Pendulum(length=10, mass=1, pos=[np.pi/4, np.pi/2], vel=[0, 0])
+        c2 = Chain(pList=[p3, p4], g=9.81)
+
+        V3 = c2._GVec()
+        V4 = np.array([9.81*6*10, 0, 9.81*1*10/np.sqrt(2), 0])
+
+        self.assertTrue(
+            arrayAlmostEqual(V3, V4) is None)
+
+        p5 = Pendulum(length=10, mass=5, pos=[np.pi/4, np.pi/4], vel=[0, 0],
+                      zPolar=False)
+        p6 = Pendulum(length=10, mass=1, pos=[np.pi/2, 0], vel=[0, 0])
+        c3 = Chain(pList=[p5, p6], g=9.81)
+
+        V5 = c3._GVec()
+        V6 = np.array([9.81*6*10/2, 9.81*6*10/2, 9.81*1*10, 0])
+
+        self.assertTrue(
+            arrayAlmostEqual(V5, V6) is None)
+
+    def test_Func(self):
+        #this function calculates the lagrangian differential equations from
+        #matrices A, B, and GVec and then pipes the acceleration result back
+        #into the new velocities, and simultaneously takes the old velocities
+        #and pipes them into the new positions. This function is intended to
+        #work in harmondy with runge-kutte methods.
+
+        #I have independently worked out the differential equations for a 
+        #single spherical pendulum, and so I have calculated the formulae for
+        #the expected polar and azimuthal acceleration for given positions and
+        #velocities.
+
+        #formula is given by ddt = sin(t)cos(t)dt^2 + g/l * sin(t) where t is
+        #the polar angle, and dt is the polar acceleration
+        PolarAcc = (lambda t,dt,dp,g,l: np.sin(t)*(np.cos(t)*dp**2+g/l))
+        #formula is given by ddp = -cot(t)*2*dt*dp where t is the polar angle,
+        #and dt and dp are the polar and azimuthal velocities.
+        AzimuthAcc = (lambda t,dt,dp,g,l: -(np.cos(t)/np.sin(t))*2*dt*dp)
+
+        p1 = Pendulum(pos=[3.61923, 0.11111], vel=[2.2222, 5.3451], length=10,
+                      mass=1)
+        c1 = Chain(pList=[p1], g=9.81)
+
+        c2 = Chain._Func(c1)
+        p2 = c2.pList[0]
+
+        self.assertEqual(p1.vel[0], p2.pos[0])
+        self.assertEqual(p1.vel[1], p2.pos[1])
+
+        p1PolarAcc = PolarAcc(p1.pos[0], p1.vel[0], p1.vel[1], 9.81, 10)
+        p1AzimuthAcc = AzimuthAcc(p1.pos[0], p1.vel[0], p1.vel[1], 9.81, 10)
+
+        self.assertEqual(p1PolarAcc, p2.vel[0])
+        self.assertEqual(p1AzimuthAcc, p2.vel[1])
 
 if __name__ == "__main__":
     unittest.main()
