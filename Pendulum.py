@@ -240,7 +240,6 @@ pos={self.pos}, vel={self.vel}, zPolar={self.zPolar})"
         if not isinstance(other, Pendulum):
             raise TypeError("Pendulum objects can only be subtracted from \
 other Pendulum objects")
-        print(self + -1*other)
         return self + -1*other
 
     def __abs__(self):

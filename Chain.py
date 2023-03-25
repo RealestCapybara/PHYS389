@@ -588,7 +588,7 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
 
     def PE(self):
         g = self.g
-        massList = [p.mass for p in pList]
+        massList = [p.mass for p in self.pList]
         Xs = self.Positions()
         V = []
         for m, x in zip(massList, Xs):

@@ -882,6 +882,44 @@ class TestChainMethods(unittest.TestCase):
 
         self.assertEqual(V3, V4)
 
+    def test_Positions(self):
+        p1 = Pendulum(length=20, mass=1, pos=[0,0],vel=[0,0])
+        p2 = Pendulum(length=10, mass=1, pos=[np.pi/2,np.pi/2], vel=[0,0])
+        p3 = Pendulum(length=11.241, mass=1, pos=[1.2341, 5.12], vel=[0,0])
+        c1 = Chain(pList=[p1,p2,p3],g=9.81)
+
+        Pos = c1.Positions()
+
+        self.assertTrue(
+            arrayAlmostEqual(Pos[0], np.array([0,0,-20])) is None)
+        
+        self.assertTrue(
+            arrayAlmostEqual(Pos[1], np.array([0,10,-20])) is None)
+
+        p3Pos = np.array([0,10,-20]) + p3.toCartesian()
+
+        self.assertTrue(
+            arrayAlmostEqual(Pos[2], p3Pos) is None)
+
+    def test_Velocities(self):
+        p1 = Pendulum(length=20, mass=1, pos=[0,0],vel=[1,0])
+        p2 = Pendulum(length=10, mass=1, pos=[np.pi/2,np.pi/2], vel=[0,1])
+        p3 = Pendulum(length=11.241, mass=1, pos=[1.2341, 5.12], vel=[1.23,4])
+        c1 = Chain(pList=[p1,p2,p3], g=9.81)
+
+        Vel = c1.Velocities()
+
+        self.assertTrue(
+            arrayAlmostEqual(Vel[0],np.array([20,0,0])) is None)
+
+        self.assertTrue(
+            arrayAlmostEqual(Vel[1],np.array([10,0,0])) is None)
+
+        p3Vel = np.array([10, 0, 0]) + p3.Velocity()
+
+        self.assertTrue(
+            arrayAlmostEqual(Vel[2], p3Vel) is None)
+
 
 
 if __name__ == "__main__":
