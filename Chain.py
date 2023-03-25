@@ -556,6 +556,14 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         return val
 
     def Velocities(self):
+        """
+        Calculates the velocities of the connected pendula.
+
+        Returns
+        -------
+        list
+            The velocity of each pendula in the system.
+        """
         pList = self.pList
         xdots = [np.array([0, 0, 0])]
         for p in pList:
@@ -563,6 +571,14 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         return xdots[1:]
 
     def Positions(self):
+        """
+        Calculates the positions of the connected pendula.
+
+        Returns
+        -------
+        list
+            The position of each pendula in the system.
+        """
         pList = self.pList
         xs = [np.array([0, 0, 0])]
         for p in pList:
@@ -572,12 +588,12 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
 
     def KE(self):
         """
-        Calculates the kinetic energy of the connected pendulum system.
+        Calculates the kinetic energies of the connected pendula.
 
         Returns
         -------
-        float
-            The total kinetic energy of the system.
+        list
+            The kinetic energy of each pendula in the system.
         """
         massList = [p.mass for p in self.pList]
         Vels = self.Velocities()
@@ -587,6 +603,14 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         return T
 
     def PE(self):
+        """
+        Calculates the potential energies of the connected pendula.
+
+        Returns
+        -------
+        list
+            The potential energy of each pendula in the system.
+        """
         g = self.g
         massList = [p.mass for p in self.pList]
         Xs = self.Positions()
@@ -596,6 +620,14 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         return V
 
     def AMom(self):
+        """
+        Calculates the angular momenta of the connected pendula.
+
+        Returns
+        -------
+        list
+            The angular momentum of each pendula in the system.
+        """
         Vels = self.Velocities()
         Xs = self.Positions()
         massList = [p.mass for p in self.pList]
@@ -605,6 +637,14 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         return AMom
 
     def LMom(self):
+        """
+        Calculates the linear momenta of the connected pendula.
+
+        Returns
+        -------
+        list
+            The linear momentum of each pendula in the system.
+        """
         Vels = self.Velocities()
         massList = [p.mass for p in self.pList]
         LMom = []
