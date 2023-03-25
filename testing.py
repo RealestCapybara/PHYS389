@@ -847,7 +847,7 @@ class TestChainMethods(unittest.TestCase):
         T1 = 0.5*p1.mass*vel1@vel1
 
         c1 = Chain(pList=[p1], g=9.81)
-        T2 = c1.KE()
+        T2 = c1.KE()[0]
 
         self.assertEqual(T1, T2)
 
@@ -857,7 +857,7 @@ class TestChainMethods(unittest.TestCase):
         T3 = 0.5*p2.mass*vel2@vel2
 
         c2 = Chain(pList=[p2], g=9.81)
-        T4 = c2.KE()
+        T4 = c2.KE()[0]
 
         self.assertEqual(T3, T4)
 
@@ -868,7 +868,7 @@ class TestChainMethods(unittest.TestCase):
         V1 = p1.mass*9.81*pos1[2]
 
         c1 = Chain(pList=[p1], g=9.81)
-        V2 = c1.PE()
+        V2 = c1.PE()[0]
 
         self.assertEqual(V1, V2)
 
@@ -878,9 +878,10 @@ class TestChainMethods(unittest.TestCase):
         V3 = p2.mass*9.81*pos2[2]
 
         c2 = Chain(pList=[p2], g=9.81)
-        V4 = c2.PE()
+        V4 = c2.PE()[0]
 
         self.assertEqual(V3, V4)
+
 
 
 if __name__ == "__main__":

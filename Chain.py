@@ -555,6 +555,21 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         self.pList = pList
         return val
 
+    def Velocities(self):
+        pList = self.pList
+        xdots = [np.array([0, 0, 0])]
+        for p in pList:
+            xdots.append(p.Velocity()+xdots[-1])
+        return xdots[1:]
+
+    def Positions(self):
+        pList = self.pList
+        xs = [np.array([0, 0, 0])]
+        for p in pList:
+            xs.append(p.toCartesian()+xs[-1])
+        return xs[1:]
+
+
     def KE(self):
         """
         Calculates the kinetic energy of the connected pendulum system.
@@ -564,24 +579,39 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         float
             The total kinetic energy of the system.
         """
-        pList = self.pList
-        massList = [p.mass for p in pList]
-        xdots = [np.array([0, 0, 0])]
-        for p in pList:
-            xdots.append(p.Velocity()+xdots[-1])
-        T = 0
-        for i, xdot in enumerate(xdots[1:]):
-            T += 0.5*massList[i]*xdot@xdot
+        massList = [p.mass for p in self.pList]
+        Vels = self.Velocities()
+        T = []
+        for m, xdot in zip(massList, Vels):
+            T.append(0.5*m*xdot@xdot)
         return T
 
     def PE(self):
-        pList = self.pList
         g = self.g
         massList = [p.mass for p in pList]
-        xs = [0]
-        for p in pList:
-            xs.append(p.toCartesian()[2]+xs[-1])
-        V = 0
-        for i, x in enumerate(xs[1:]):
-            V += massList[i]*g*x
+        Xs = self.Positions()
+        V = []
+        for m, x in zip(massList, Xs):
+            V.append(m*g*x[2])
         return V
+
+    def AMom(self):
+        Vels = self.Velocities()
+        Xs = self.Positions()
+        massList = [p.mass for p in self.pList]
+        AMom = []
+        for m, v, x in zip(massList, Vels, Xs):
+            AMom.append(m*np.cross(x, v))
+        return AMom
+
+    def LMom(self):
+        Vels = self.Velocities()
+        massList = [p.mass for p in self.pList]
+        LMom = []
+        for m, v in zip(massList, Vels):
+            LMom.append(m*v)
+        return LMom
+
+
+
+
