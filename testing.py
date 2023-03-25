@@ -840,6 +840,48 @@ class TestChainMethods(unittest.TestCase):
         #have changed
         self.assertTrue(val)
 
+    def test_KE(self):
+        p1 = Pendulum(length=10, mass=1, pos=[2, 1], vel=[0.1, 0.3])
+        
+        vel1 = p1.Velocity()
+        T1 = 0.5*p1.mass*vel1@vel1
+
+        c1 = Chain(pList=[p1], g=9.81)
+        T2 = c1.KE()
+
+        self.assertEqual(T1, T2)
+
+        p2 = Pendulum(length=10, mass=1, pos=[1.56, 3.14], vel=[0.5, 0.2])
+        
+        vel2 = p2.Velocity()
+        T3 = 0.5*p2.mass*vel2@vel2
+
+        c2 = Chain(pList=[p2], g=9.81)
+        T4 = c2.KE()
+
+        self.assertEqual(T3, T4)
+
+    def test_PE(self):
+        p1 = Pendulum(length=10, mass=1, pos=[2, 1], vel=[0.1, 0.3])
+        
+        pos1 = p1.toCartesian()
+        V1 = p1.mass*9.81*pos1[2]
+
+        c1 = Chain(pList=[p1], g=9.81)
+        V2 = c1.PE()
+
+        self.assertEqual(V1, V2)
+
+        p2 = Pendulum(length=10, mass=1, pos=[1.56, 3.14], vel=[0.5, 0.2])
+        
+        pos2 = p2.toCartesian()
+        V3 = p2.mass*9.81*pos2[2]
+
+        c2 = Chain(pList=[p2], g=9.81)
+        V4 = c2.PE()
+
+        self.assertEqual(V3, V4)
+
 
 if __name__ == "__main__":
     unittest.main()
