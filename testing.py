@@ -790,6 +790,56 @@ class TestChainMethods(unittest.TestCase):
 
         self.assertEqual(c5,c6)
 
+    def test_RK4(self):
+        p1 = Pendulum(length=10, mass=1, pos=[0.3333, 7.15325], vel=[5,2])
+        p2 = Pendulum(length=10, mass=1, pos=[5.2, 4.0101], vel=[10,0])
+        c1 = Chain(pList=[p1, p2], g=9.81)
+        c1.fixCoords()
+
+        h = 0.1
+        k1 = Chain._Func(c1)
+        k2 = Chain._Func(c1+h*0.5*k1)
+        k3 = Chain._Func(c1+h*0.5*k2)
+        k4 = Chain._Func(c1+h*k3)
+
+        c2 = c1 + (1/6)*(k1+2*k2+2*k3+k4)*h
+
+        c1.RK4(h)
+
+        self.assertAlmostEqual(c1, c2)
+
+    def test_fixCoords(self):
+        p1 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0,0])
+        p2 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0,0])
+        p3 = Pendulum(length=10, mass=1, pos=[0.11111, 0.15325], vel=[5,2])
+        p4 = Pendulum(length=10, mass=1, pos=[3, 4], vel=[0.321,0.123])
+        p5 = Pendulum(length=10, mass=1, pos=[0.3333, 7.15325], vel=[5,2])
+        p6 = Pendulum(length=10, mass=1, pos=[5.2, 4.0101], vel=[10,0])
+
+        pList = [p1, p2, p3, p4, p5, p6]
+
+        #Explicitly changing the coordinates of all pendula
+        TestList = deepcopy(pList)
+        for p in TestList:
+            p.fixCoord()
+
+        #confirming that some pendula change
+        self.assertFalse(all([round(abs(p-q),10)==0.0 for p,q in \
+            zip(pList, TestList)]))
+        
+        #using fixCoords to change the pendula coords
+        c = Chain(pList=pList, g=9.81)
+        val = c.fixCoords()
+
+        #Checking that the explicitly changed pendula and the method result in
+        #the same values.
+        self.assertTrue(
+            arrayEqual(c.pList, TestList) is None)
+
+        #checking that value returns true in the case that at least some pendula
+        #have changed
+        self.assertTrue(val)
+
 
 if __name__ == "__main__":
     unittest.main()
