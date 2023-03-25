@@ -743,6 +743,53 @@ class TestChainMethods(unittest.TestCase):
 
         self.assertAlmostEqual(p1PolarAcc, p2.vel[0])
         self.assertAlmostEqual(p1AzimuthAcc, p2.vel[1])
+    
+    def test_RK(self):
+        #arbitrary chain
+        p1 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0,0])
+        p2 = Pendulum(length=10, mass=1, pos=[0, np.pi/2], vel=[0,0])
+        c1 = Chain(pList=[p1, p2], g=9.81)
+        c1.fixCoords()
+
+        #explicit euler method
+        c2 = c1 + 0.5 * Chain._Func(c1)
+
+        #using the RK method to do the euler method
+        c1.RK(timeDelta=0.5, RKmatrix=np.array([]), weights=[1],\
+            function=Chain._Func)
+
+        self.assertEqual(c1,c2)
+
+        #arbitrary chain
+        p3 = Pendulum(length=10, mass=1, pos=[0.11111, 0.15325], vel=[5,2])
+        p4 = Pendulum(length=10, mass=1, pos=[3, 4], vel=[0.321,0.123])
+        c3 = Chain(pList=[p3, p4], g=9.81)
+        c3.fixCoords()
+
+        #explicit euler method
+        c4 = c3 + 0.3333 * Chain._Func(c3)
+
+        #using the RK method to do the euler method
+        c3.RK(timeDelta=0.3333, RKmatrix=np.array([]), weights=[1],\
+            function=Chain._Func)
+
+        self.assertEqual(c3,c4)
+
+        #arbitrary chain
+        p5 = Pendulum(length=10, mass=1, pos=[0.3333, 7.15325], vel=[5,2])
+        p6 = Pendulum(length=10, mass=1, pos=[5.2, 4.0101], vel=[10,0])
+        c5 = Chain(pList=[p5, p6], g=9.81)
+        c5.fixCoords()
+
+        #explicit midpoint method
+        c6 = c5 + 0.1234 * Chain._Func(c5 + 0.5*0.1234*Chain._Func(c5))
+
+        #using the RK method to do the midpoint method
+        c5.RK(timeDelta=0.1234, RKmatrix=np.array([[0.5]]), weights=[0,1],\
+            function=Chain._Func)
+
+        self.assertEqual(c5,c6)
+
 
 if __name__ == "__main__":
     unittest.main()
