@@ -920,6 +920,23 @@ class TestChainMethods(unittest.TestCase):
         self.assertTrue(
             arrayAlmostEqual(Vel[2], p3Vel) is None)
 
+    def test_LMom(self):
+        p1 = Pendulum(length=17, mass=5, pos=[0,0], vel=[3,0])
+        c1 = Chain(pList=[p1],g=9.81)
+
+        LM = c1.LMom()
+
+        self.assertTrue(
+            arrayAlmostEqual(LM[0], np.array([17*5*3, 0, 0])) is None)
+
+    def test_AMom(self):
+        p1 = Pendulum(length=17, mass=5, pos=[0,0], vel=[3,0])
+        c1 = Chain(pList=[p1],g=9.81)
+
+        AM = c1.AMom()
+
+        self.assertTrue(
+            arrayAlmostEqual(AM[0], np.array([0, - 17**2 *5*3, 0])) is None)
 
 
 if __name__ == "__main__":
