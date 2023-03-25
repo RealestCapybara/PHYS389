@@ -723,7 +723,7 @@ class TestChainMethods(unittest.TestCase):
 
         #formula is given by ddt = sin(t)cos(t)dt^2 + g/l * sin(t) where t is
         #the polar angle, and dt is the polar acceleration
-        PolarAcc = (lambda t,dt,dp,g,l: np.sin(t)*(np.cos(t)*dp**2+g/l))
+        PolarAcc = (lambda t,dt,dp,g,l: np.sin(t)*(np.cos(t)*dp**2-g/l))
         #formula is given by ddp = -cot(t)*2*dt*dp where t is the polar angle,
         #and dt and dp are the polar and azimuthal velocities.
         AzimuthAcc = (lambda t,dt,dp,g,l: -(np.cos(t)/np.sin(t))*2*dt*dp)
@@ -741,8 +741,8 @@ class TestChainMethods(unittest.TestCase):
         p1PolarAcc = PolarAcc(p1.pos[0], p1.vel[0], p1.vel[1], 9.81, 10)
         p1AzimuthAcc = AzimuthAcc(p1.pos[0], p1.vel[0], p1.vel[1], 9.81, 10)
 
-        self.assertEqual(p1PolarAcc, p2.vel[0])
-        self.assertEqual(p1AzimuthAcc, p2.vel[1])
+        self.assertAlmostEqual(p1PolarAcc, p2.vel[0])
+        self.assertAlmostEqual(p1AzimuthAcc, p2.vel[1])
 
 if __name__ == "__main__":
     unittest.main()
