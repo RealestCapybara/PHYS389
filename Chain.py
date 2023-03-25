@@ -477,16 +477,15 @@ pole={(lambda zPole: 'z' if zPole else 'x')(v.zPolar)}"
         if not callable(function):
             raise TypeError("function must be a function")
 
-        if len(RKmatrix[-1]) != (len(weights)-1):
-            raise ValueError(
-                "length of weights must be one more than last row of RKmatrix")
-
         if len(RKmatrix) != 0:
             if RKmatrix.ndim != 2:
                 raise ValueError("RKmatrix must be a matrix")
             if len(RKmatrix) != len(RKmatrix[0]):
                 raise ValueError(
                     "number of rows and cols of RKmatrix must be equal")
+            if len(RKmatrix[-1]) != (len(weights)-1):
+                raise ValueError(\
+                "length of weights must be one more than last row of RKmatrix")
 
         if round(sum(weights), 10) != 1.0:
             raise ValueError("sum of weights must be 1")
