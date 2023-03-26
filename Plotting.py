@@ -20,11 +20,6 @@ def checkSettings(settings):
         raise KeyError(
             "plotconfig file has misnamed or absent 'filename' value")
     try:
-        anim = sys["anim"]
-    except KeyError:
-        raise KeyError(
-            "plotconfig file has misnamed or absent 'anim' value")
-    try:
         plot = sys["plot"]
     except KeyError:
         raise KeyError(
@@ -109,8 +104,6 @@ def checkSettings(settings):
     
     if not isinstance(filename, str):
         raise TypeError("'filename' must be a str")
-    if not isinstance(anim, bool):
-        raise TypeError("'anim' must be a boolean")
     if not isinstance(x, list):
         raise TypeError("'x' must be a list")
     if len(x) != 3:

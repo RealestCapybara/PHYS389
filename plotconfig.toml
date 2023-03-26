@@ -1,8 +1,6 @@
 [system]
 #filename to gather data from (previously simulated pickle)
 filename="smalloscillation"
-#whether to give a 2D diagnostic plot (false), or a 3D animated plot (true)
-anim=false
     [system.plot]
     # cartesian position
     x = [true, true, true]
