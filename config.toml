@@ -1,15 +1,71 @@
 [system]
-g=9.81
-timedelta=0.01
-steps=8000
-filename="smalloscillation"
+# filename to save to and load from
+filename="noGravityOnePendulum"
 
-    [[system.pendula]]
+# simulation settings
+[system.sim]
+# gravitational constant
+g=0
+# timestep
+timedelta=0.01
+# number of iterations
+steps=8000
+
+    
+    # add one [[system.sim.pendula]] for each pendula desired.
+
+    # length: pendulum length in metres
+    # mass: pendulum mass in kilograms
+    # theta: [polar angle position (float), units (str)] 
+    # phi: [azimuthal angle position (float), units (str)] 
+    # thetadot: [polar anglular speed (float), units (str)] 
+    # phidot: [azimuthal anglular speed (float), units (str)]
+    # zPole: which spherical basis, z-polar (true), or x-polar (false)
+
+    #angle units are: 'r': radians, 'd': degrees, 'p': radian multiples of pi
+
+    # TEMPLATE - CHANGE VALUES BUT DO NOT DELETE
+    [[system.sim.pendula]]
     length=10
     mass=1
     theta=[0.1,"p"]
     phi=[0,"r"]
-    thetadot=[0,"r"]
-    phidot=[0,"r"]
+    thetadot=[2,"r"]
+    phidot=[3,"r"]
     zPole=true
+
+
+# Plotting settings
+[system.plot]
+# cartesian position
+x = [false, false, false]
+# cartesian velocity
+v = [false, false, false]
+# angles [theta, phi]
+pos = [false, false]
+# angular speeds [thetadot, phidot]
+vel = [false, false]
+#coordinate basis
+pole = false
+# kinetic, potential, and mechanical energy for a given pendulum
+KE = false
+PE = false
+ME = false
+# total kinetic, potential, and mechanical energy for the entire system
+totalKE = false
+totalPE = false
+totalME = false
+# cartesian linear momentum and angular momentum for each pendulum
+LM = [false, false, false]
+AM = [false, false, false]
+# absolute linear momentum and angular momentum for each pendulum
+absLM = false
+absAM = false
+# total cartesian linear momentum and angular momentum for the entire system
+totalLM = [false, false, false]
+totalAM = [false, false, false]
+# magnitude of the total linear momentum and angular momentum of
+# the entire system
+absTotalLM = true
+absTotalAM = true
 

@@ -101,7 +101,7 @@ def checkSettings(settings):
     except KeyError:
         raise KeyError(
             "plotconfig file has misnamed or absent 'totalAM' value")
-    
+
     if not isinstance(filename, str):
         raise TypeError("'filename' must be a str")
     if not isinstance(x, list):
@@ -128,7 +128,7 @@ def checkSettings(settings):
         raise ValueError("'vel' must have len=2")
     if not all(isinstance(val, bool) for val in vel):
         raise TypeError("'vel' must only contain boolean values")
-    
+
     if not isinstance(pole, bool):
         raise TypeError("'pole' must be a boolean value")
     if not isinstance(KE, bool):
@@ -176,19 +176,19 @@ def checkSettings(settings):
 
 def plotValues(data):
     """Returns a dict with the values to plot."""
-    
-    #each key I want to exist in the returned dictionary (depends on config file)
-    #the first key list are values for each pendulum
+
+    #each key I want to exist in the returned dictionary (depends on config 
+    #file) the first key list are values for each pendulum
     pkeyList = ['x', 'y', 'z', 'vx', 'vy', 'vz', 'theta', 'phi', 'thetadot',
-               'phidot', 'whichPole', 'KE', 'PE', 'ME', 'LMx', 'AMx', 'LMy', 
+               'phidot', 'whichPole', 'KE', 'PE', 'ME', 'LMx', 'AMx', 'LMy',
                'AMy', 'LMz', 'AMz', 'absLM', 'absAM']
     #the second list of keys are values of the entire system
-    sysKeyList = ['totalKE', 'totalPE', 'totalME',  'totalLMx', 'totalAMx', 
+    sysKeyList = ['totalKE', 'totalPE', 'totalME',  'totalLMx', 'totalAMx',
                   'totalLMy', 'totalAMy', 'totalLMz', 'totalAMz', 'absTotalLM',
-                  'absTotalAM', 'totalAbsLM', 'totalAbsAM']
+                  'absTotalAM']
 
-    #creates an empty dictionary containing lists attributed to all possible keys
-    #uses comprehension to add numbers to the keys for each pendula
+    #creates an empty dictionary containing lists attributed to all possible
+    #keys - uses comprehension to add numbers to the keys for each pendula
     FrameDict = {f'{val}{i}':[] for i in range(len(data[0].pList))
                  for val in pkeyList}
     #adds on the keys for the system. These don't need numbers added to the end
@@ -203,7 +203,7 @@ def plotValues(data):
         ME = [i+j for i,j in zip(KE,PE)]
         LM = v.LMom()
         AM = v.AMom()
-        
+
         for i, p in enumerate(v.pList):
             FrameDict[f'x{i}'].append(Pos[i][0])
             FrameDict[f'y{i}'].append(Pos[i][1])
@@ -245,14 +245,12 @@ def plotValues(data):
         FrameDict['totalLMy'].append(totLM[1])
         FrameDict['totalLMz'].append(totLM)
         FrameDict['absTotalLM'].append(np.linalg.norm(totLM))
-        FrameDict['totalAbsLM'].append(sum([np.linalg.norm(p) for p in LM]))
 
         totAM = sum(AM)
         FrameDict['totalAMx'].append(totAM[0])
         FrameDict['totalAMy'].append(totAM[1])
         FrameDict['totalAMz'].append(totAM[2])
         FrameDict['absTotalAM'].append(np.linalg.norm(totAM))
-        FrameDict['totalAbsAM'].append(sum([np.linalg.norm(p) for p in AM]))
 
     return FrameDict
 
@@ -277,9 +275,7 @@ def filterDiagnosticData(dictionary, settings):
                'totalLM': ('totalLMx', 'totalLMy', 'totalLMz'),
                'totalAM': ('totalAMx', 'totalAMy', 'totalAMz'),
                'absTotalLM': ('absTotalLM',),
-               'absTotalAM': ('absTotalAM',),
-               'totalAbsLM': ('totalAbsLM',),
-               'totalAbsAM': ('totalAbsAM',)}
+               'absTotalAM': ('absTotalAM',)}
 
     #goes through settings
     for key, value in settings['plot'].items():
@@ -300,10 +296,9 @@ def filterDiagnosticData(dictionary, settings):
                     dictionary.pop(k, None)
     return dictionary
 
-
 if __name__ == "__main__":
     file = os.path.dirname(__file__)
-    path = os.path.join(file,"plotconfig.toml")
+    path = os.path.join(file,"config.toml")
 
     with open(path, 'rb') as f:
         settings = toml.load(f)
@@ -324,6 +319,7 @@ if __name__ == "__main__":
     dictionary = plotValues(data)
     dictionary = filterDiagnosticData(dictionary, settings)
     for key, value in dictionary.items():
+        print(key)
         plt.plot(t, value, label=key)
     plt.legend()
     plt.show()

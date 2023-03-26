@@ -12,6 +12,11 @@ def genPList(data):
         data = data['system']
     except KeyError:
         raise KeyError("config file has misnamed or absent 'system' table")
+
+    try:
+        data = data['sim']
+    except KeyError:
+        raise KeyError("config file has misnamed or absent 'sim' subtable")
     try:
         PDatList = data['pendula']
     except KeyError:
@@ -102,6 +107,16 @@ def SystemValues(data):
         raise KeyError("config file has misnamed or absent 'system' table")
 
     try:
+        filename = data["filename"]
+    except KeyError:
+        raise KeyError("'filename' value has been misnamed or is absent")
+
+    try:
+        data = data['sim']
+    except KeyError:
+        raise KeyError("config file has misnamed or absent 'sim' subtable")
+
+    try:
         g = data["g"]
     except KeyError:
         g = 9.81
@@ -117,10 +132,6 @@ def SystemValues(data):
     except KeyError:
         raise KeyError("'steps' value has been misnamed or is absent")
 
-    try:
-        filename = data["filename"]
-    except KeyError:
-        raise KeyError("'filename' value has been misnamed or is absent")
 
     if not isinstance(g, (float, int)):
         raise TypeError("'g' must be a float or int")

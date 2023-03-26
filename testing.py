@@ -743,7 +743,7 @@ class TestChainMethods(unittest.TestCase):
 
         self.assertAlmostEqual(p1PolarAcc, p2.vel[0])
         self.assertAlmostEqual(p1AzimuthAcc, p2.vel[1])
-    
+
     def test_RK(self):
         #arbitrary chain
         p1 = Pendulum(length=10, mass=1, pos=[0, 0], vel=[0,0])
@@ -826,7 +826,7 @@ class TestChainMethods(unittest.TestCase):
         #confirming that some pendula change
         self.assertFalse(all([round(abs(p-q),10)==0.0 for p,q in \
             zip(pList, TestList)]))
-        
+
         #using fixCoords to change the pendula coords
         c = Chain(pList=pList, g=9.81)
         val = c.fixCoords()
@@ -836,13 +836,13 @@ class TestChainMethods(unittest.TestCase):
         self.assertTrue(
             arrayEqual(c.pList, TestList) is None)
 
-        #checking that value returns true in the case that at least some pendula
-        #have changed
+        #checking that value returns true in the case that at least some 
+        #pendula have changed
         self.assertTrue(val)
 
     def test_KE(self):
         p1 = Pendulum(length=10, mass=1, pos=[2, 1], vel=[0.1, 0.3])
-        
+
         vel1 = p1.Velocity()
         T1 = 0.5*p1.mass*vel1@vel1
 
@@ -852,7 +852,7 @@ class TestChainMethods(unittest.TestCase):
         self.assertEqual(T1, T2)
 
         p2 = Pendulum(length=10, mass=1, pos=[1.56, 3.14], vel=[0.5, 0.2])
-        
+
         vel2 = p2.Velocity()
         T3 = 0.5*p2.mass*vel2@vel2
 
@@ -863,7 +863,7 @@ class TestChainMethods(unittest.TestCase):
 
     def test_PE(self):
         p1 = Pendulum(length=10, mass=1, pos=[2, 1], vel=[0.1, 0.3])
-        
+
         pos1 = p1.toCartesian()
         V1 = p1.mass*9.81*pos1[2]
 
@@ -873,7 +873,7 @@ class TestChainMethods(unittest.TestCase):
         self.assertEqual(V1, V2)
 
         p2 = Pendulum(length=10, mass=1, pos=[1.56, 3.14], vel=[0.5, 0.2])
-        
+
         pos2 = p2.toCartesian()
         V3 = p2.mass*9.81*pos2[2]
 
@@ -892,7 +892,7 @@ class TestChainMethods(unittest.TestCase):
 
         self.assertTrue(
             arrayAlmostEqual(Pos[0], np.array([0,0,-20])) is None)
-        
+
         self.assertTrue(
             arrayAlmostEqual(Pos[1], np.array([0,10,-20])) is None)
 
@@ -937,7 +937,6 @@ class TestChainMethods(unittest.TestCase):
 
         self.assertTrue(
             arrayAlmostEqual(AM[0], np.array([0, - 17**2 *5*3, 0])) is None)
-
 
 if __name__ == "__main__":
     unittest.main()
