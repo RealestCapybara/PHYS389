@@ -2,26 +2,14 @@
 g=9.81
 timedelta=0.01
 steps=8000
-filename="test"
+filename="smalloscillation"
 
     [[system.pendula]]
     length=10
-    mass=25
-    theta=[0.5,"p"]
+    mass=1
+    theta=[0.1,"p"]
     phi=[0,"r"]
     thetadot=[0,"r"]
     phidot=[0,"r"]
     zPole=true
-
-    [[system.pendula]]
-    length=10
-    mass=10
-    theta=[2.8,"r"]
-    phi=[0.1,"r"]
-
-    [[system.pendula]]
-    length=10
-    mass=5
-    theta=[1,"p"]
-    phi=[0.1,"r"]
 

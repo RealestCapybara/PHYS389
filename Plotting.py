@@ -3,8 +3,9 @@ from Chain import Chain
 from Pendulum import Pendulum
 import matplotlib.pyplot as plt
 import pickle
-import tomllib as toml
+import tomli as toml
 from operator import itemgetter
+import os
 
 
 def checkSettings(settings):
@@ -64,10 +65,48 @@ def checkSettings(settings):
         raise KeyError(
             "plotconfig file has misnamed or absent 'PE' value")
     try:
-        totalE = plot["totalE"]
+        ME = plot["ME"]
     except KeyError:
         raise KeyError(
-            "plotconfig file has misnamed or absent 'totalE' value")
+            "plotconfig file has misnamed or absent 'ME' value")
+
+    try:
+        totalKE = plot["totalKE"]
+    except KeyError:
+        raise KeyError(
+            "plotconfig file has misnamed or absent 'totalKE' value")
+    try:
+        totalPE = plot["totalPE"]
+    except KeyError:
+        raise KeyError(
+            "plotconfig file has misnamed or absent 'totalPE' value")
+    try:
+        totalME = plot["totalME"]
+    except KeyError:
+        raise KeyError(
+            "plotconfig file has misnamed or absent 'totalME' value")
+
+    try:
+        LM = plot["LM"]
+    except KeyError:
+        raise KeyError(
+            "plotconfig file has misnamed or absent 'LM' value")
+    try:
+        AM = plot["AM"]
+    except KeyError:
+        raise KeyError(
+            "plotconfig file has misnamed or absent 'AM' value")
+    try:
+        totalLM = plot["totalLM"]
+    except KeyError:
+        raise KeyError(
+            "plotconfig file has misnamed or absent 'totalLM' value")
+    try:
+        totalAM = plot["totalAM"]
+    except KeyError:
+        raise KeyError(
+            "plotconfig file has misnamed or absent 'totalAM' value")
+    
     if not isinstance(filename, str):
         raise TypeError("'filename' must be a str")
     if not isinstance(anim, bool):
@@ -96,77 +135,131 @@ def checkSettings(settings):
         raise ValueError("'vel' must have len=2")
     if not all(isinstance(val, bool) for val in vel):
         raise TypeError("'vel' must only contain boolean values")
+    
+    if not isinstance(pole, bool):
+        raise TypeError("'pole' must be a boolean value")
+    if not isinstance(KE, bool):
+        raise TypeError("'KE' must be a boolean value")
+    if not isinstance(PE, bool):
+        raise TypeError("'PE' must be a boolean value")
+    if not isinstance(ME, bool):
+        raise TypeError("'ME' must be a boolean value")
+    if not isinstance(totalKE, bool):
+        raise TypeError("'totalKE' must be a boolean value")
+    if not isinstance(totalPE, bool):
+        raise TypeError("'totalPE' must be a boolean value")
+    if not isinstance(totalME, bool):
+        raise TypeError("'totalME' must be a boolean value")
+
+    if not isinstance(LM, list):
+        raise TypeError("'LM' must be a list")
+    if len(LM) != 3:
+        raise ValueError("'LM' must have len=3")
+    if not all(isinstance(val, bool) for val in LM):
+        raise TypeError("'LM' must only contain boolean values")
+
+    if not isinstance(AM, list):
+        raise TypeError("'AM' must be a list")
+    if len(AM) != 3:
+        raise ValueError("'AM' must have len=3")
+    if not all(isinstance(val, bool) for val in AM):
+        raise TypeError("'AM' must only contain boolean values")
+
+    if not isinstance(totalLM, list):
+        raise TypeError("'totalLM' must be a list")
+    if len(totalLM) != 3:
+        raise ValueError("'totalLM' must have len=3")
+    if not all(isinstance(val, bool) for val in totalLM):
+        raise TypeError("'totalLM' must only contain boolean values")
+
+    if not isinstance(totalAM, list):
+        raise TypeError("'totalAM' must be a list")
+    if len(totalAM) != 3:
+        raise ValueError("'totalAM' must have len=3")
+    if not all(isinstance(val, bool) for val in totalAM):
+        raise TypeError("'totalAM' must only contain boolean values")
 
     return sys
 
 def plotValues(data):
     """Returns a dict with the values to plot."""
+    
+    #each key I want to exist in the returned dictionary (depends on config file)
+    #the first key list are values for each pendulum
+    pkeyList = ['x', 'y', 'z', 'vx', 'vy', 'vz', 'theta', 'phi', 'thetadot',
+               'phidot', 'whichPole', 'KE', 'PE', 'ME', 'LMx', 'AMx', 'LMy', 
+               'AMy', 'LMz', 'AMz', 'absLM', 'absAM']
+    #the second list of keys are values of the entire system
+    sysKeyList = ['totalKE', 'totalPE', 'totalME',  'totalLMx', 'totalAMx', 
+                  'totalLMy', 'totalAMy', 'totalLMz', 'totalAMz', 'absTotalLM',
+                  'absTotalAM', 'totalAbsLM', 'totalAbsAM']
 
-    #THIS ALL NEEDS WORK - VERY CLUNKY AND DIFFICULT TO UNDERSTAND
-    #ensure unit testing is finished before coming back to improve.
-
-    keyList = ['x', 'y', 'z', 'vx', 'vy', 'vz', 'theta', 'phi', 'thetadot',
-               'phidot', 'whichPole', 'KE', 'PE', 'totalE']
-
+    #creates an empty dictionary containing lists attributed to all possible keys
+    #uses comprehension to add numbers to the keys for each pendula
     FrameDict = {f'{val}{i}':[] for i in range(len(data[0].pList))
-                 for val in keyList[:11]}
-    FrameDict.update({k:[] for k in keyList[11:]})
+                 for val in pkeyList}
+    #adds on the keys for the system. These don't need numbers added to the end
+    #so need to be treated differently.
+    FrameDict.update({k:[] for k in sysKeyList})
 
-    #iterates through each frame and collects v, the system element and i, the
-    #frame
     for i, v in enumerate(data):
-        #gets the list of pendula in the given frame
-        pList = v.pList
-        #holds the relevant generation functions and the final dictionary 
-        #keys in a dict associated with the respective settings key
-        #this is done to avoid repetetive code
-        keyfuncs1 = {
-            'x': [(lambda p: p.toCartesian()), ('x', 'y', 'z')],
-            'v': [(lambda p: p.Velocity()), ('vx', 'vy', 'vz')],
-            'pos': [(lambda p: p.pos), ('theta', 'phi')],
-            'vel': [(lambda p: p.vel), ('thetadot', 'phidot')]}
-        #stores three functions in a dictionary. This is done to avoid 
-        #repetetive code.
-        keyfuncs2 = {
-            'KE': (lambda sys: sys.KE()),
-            'PE': (lambda sys: sys.PE()),
-            'totalE': (lambda sys: sys.KE()+sys.PE())}
-        #iterates through the settings to check each value
-        for key in ['x', 'v', 'pos', 'vel', 'pole', 'KE', 'PE', 'totalE']:
-            #if the 'true' key is in the list of keys, then this code can be 
-            #executed
-            if key in keyfuncs1.keys():
-                #creates a 2D list containing the final values for each 
-                #pendulum (row)
-                newVal = [keyfuncs1[key][0](p) for p in pList]
-                #puts the values into a dictionary element with a key for each
-                #combiantion of desired value and pendulum.
-                dictElement = {f"{coord}{pi}":newVal[pi][ci]
-                               for pi in range(len(newVal))
-                               for ci, coord in enumerate(
-                                   keyfuncs1[key][1])}
-            #another value. This key acts differently to all others, so is 
-            #treated seperately.
-            if key == 'pole':
-                #checks what coordinate basis the pendula are using, and if
-                #they are in the z-basis, puts a 10, -10 otherwise.
-                newVal = [(lambda b: 10 if b else -10)(p.zPolar)
-                          for p in pList]
-                #creates a dictionary element, with a key for each pendulum
-                dictElement = {f"whichPole{pi}":v for pi, v, in
-                               enumerate(newVal)}
+        Pos = v.Positions()
+        Vel = v.Velocities()
+        KE = v.KE()
+        PE = v.PE()
+        ME = [i+j for i,j in zip(KE,PE)]
+        LM = v.LMom()
+        AM = v.AMom()
+        
+        for i, p in enumerate(v.pList):
+            FrameDict[f'x{i}'].append(Pos[i][0])
+            FrameDict[f'y{i}'].append(Pos[i][1])
+            FrameDict[f'z{i}'].append(Pos[i][2])
 
-            #checks if the key is in this second set of grouped functions
-            if key in keyfuncs2.keys():
-                #as these are functions applied to the entire system, only one
-                #value needs to be stored.
-                newVal = keyfuncs2[key](v)
-                dictElement = {key: newVal}
+            FrameDict[f'vx{i}'].append(Vel[i][0])
+            FrameDict[f'vy{i}'].append(Vel[i][1])
+            FrameDict[f'vz{i}'].append(Vel[i][2])
 
-            #new elements are added to FrameDict
-            for key, value in dictElement.items():
-                #print(f"{key}:{value}")
-                FrameDict[key].append(value)
+            FrameDict[f'vx{i}'].append(Vel[i][0])
+            FrameDict[f'vy{i}'].append(Vel[i][1])
+            FrameDict[f'vz{i}'].append(Vel[i][2])
+
+            FrameDict[f'LMx{i}'].append(LM[i][0])
+            FrameDict[f'LMy{i}'].append(LM[i][1])
+            FrameDict[f'LMz{i}'].append(LM[i][2])
+            FrameDict[f'absLM{i}'].append(np.linalg.norm(LM[i]))
+
+            FrameDict[f'AMx{i}'].append(AM[i][0])
+            FrameDict[f'AMy{i}'].append(AM[i][1])
+            FrameDict[f'AMz{i}'].append(AM[i][2])
+            FrameDict[f'absAM{i}'].append(np.linalg.norm(AM[i]))
+
+            FrameDict[f'KE{i}'].append(KE[i])
+            FrameDict[f'PE{i}'].append(PE[i])
+            FrameDict[f'ME{i}'].append(ME[i])
+
+            FrameDict[f'theta{i}'].append(p.pos[0])
+            FrameDict[f'phi{i}'].append(p.pos[1])
+            FrameDict[f'thetadot{i}'].append(p.vel[0])
+            FrameDict[f'phidot{i}'].append(p.vel[1])
+
+        FrameDict['totalKE'].append(sum(KE))
+        FrameDict['totalPE'].append(sum(PE))
+        FrameDict['totalME'].append(sum(ME))
+
+        totLM = sum(LM)
+        FrameDict['totalLMx'].append(totLM[0])
+        FrameDict['totalLMy'].append(totLM[1])
+        FrameDict['totalLMz'].append(totLM)
+        FrameDict['absTotalLM'].append(np.linalg.norm(totLM))
+        FrameDict['totalAbsLM'].append(sum([np.linalg.norm(p) for p in LM]))
+
+        totAM = sum(AM)
+        FrameDict['totalAMx'].append(totAM[0])
+        FrameDict['totalAMy'].append(totAM[1])
+        FrameDict['totalAMz'].append(totAM[2])
+        FrameDict['absTotalAM'].append(np.linalg.norm(totAM))
+        FrameDict['totalAbsAM'].append(sum([np.linalg.norm(p) for p in AM]))
 
     return FrameDict
 
@@ -180,7 +273,21 @@ def filterDiagnosticData(dictionary, settings):
                'pole': ('whichPole',),
                'KE': ('KE',),
                'PE': ('PE',),
-               'totalE': ('totalE',)}
+               'ME': ('ME',),
+               'totalKE': ('totalKE',),
+               'totalPE': ('totalPE',),
+               'totalME': ('totalME',),
+               'LM': ('LMx', 'LMy', 'LMz'),
+               'AM': ('AMx', 'AMy', 'AMz'),
+               'absLM': ('absLM',),
+               'absAM': ('absAM',),
+               'totalLM': ('totalLMx', 'totalLMy', 'totalLMz'),
+               'totalAM': ('totalAMx', 'totalAMy', 'totalAMz'),
+               'absTotalLM': ('absTotalLM',),
+               'absTotalAM': ('absTotalAM',),
+               'totalAbsLM': ('totalAbsLM',),
+               'totalAbsAM': ('totalAbsAM',)}
+
     #goes through settings
     for key, value in settings['plot'].items():
         #if the value is just a lone boolean, it is converted to a 1 element
@@ -202,14 +309,19 @@ def filterDiagnosticData(dictionary, settings):
 
 
 if __name__ == "__main__":
-    with open("plotconfig.toml", 'rb') as file:
-        settings = toml.load(file)
+    file = os.path.dirname(__file__)
+    path = os.path.join(file,"plotconfig.toml")
+
+    with open(path, 'rb') as f:
+        settings = toml.load(f)
 
     settings = checkSettings(settings)
 
     filename = settings['filename']
 
-    with open(f"{filename}.pickle", 'rb') as file:
+    picklepath = os.path.join(file, f"{filename}.pickle")
+
+    with open(picklepath, 'rb') as file:
         data = pickle.load(file)
 
     timedelta = data[0]

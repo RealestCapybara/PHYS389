@@ -1,10 +1,11 @@
 import numpy as np
 from Pendulum import Pendulum
 from Chain import Chain
-import tomllib as toml
+import tomli as toml
 import pickle
 from tqdm import tqdm
 from copy import deepcopy
+import os
 
 def genPList(data):
     try:
@@ -138,7 +139,10 @@ def SystemValues(data):
 
 if __name__ == '__main__':
 
-    with open("config.toml", "rb") as f:
+    file = os.path.dirname(__file__)
+    path = os.path.join(file,"config.toml")
+
+    with open(path, 'rb') as f:
         data = toml.load(f)
 
     pList = genPList(data)
@@ -153,10 +157,10 @@ if __name__ == '__main__':
         SystemEveryTick.append(deepcopy(System))
         System.RK4(timedelta)
         System.fixCoords()
-    for sys in SystemEveryTick[:10]:
-        print(sys)
 
     print(f"Saving to {filename}.pickle...")
 
-    with open(f"{filename}.pickle", 'wb') as file:
+    picklepath = os.path.join(file,f"{filename}.pickle")
+
+    with open(picklepath, 'wb') as file:
         pickle.dump(SystemEveryTick, file, protocol=pickle.HIGHEST_PROTOCOL)
