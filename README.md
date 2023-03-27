@@ -9,6 +9,7 @@ I was intesrested in modelling chaotic systems, and a simple case for this is th
 - [Usage](#usage)
 - [Design](#design)
 - [Structure](#structure)
+- [Future Work](#future work)
 
 ## Usage
 
@@ -20,7 +21,7 @@ The system.plot table just contains boolean values and lists of boolean values. 
 
 ## Design
 
-The resulting system can simulate and plot any number of arbitrarily oriented connected pendulum objects - however for the sake of simplification the model does assume that all mass of a pendulum is centred at its end, and assumes a frictionless environment. These assumptions were necessary to be able to complete the project within the required time window.
+The resulting system can simulate and plot any number of arbitrarily oriented connected pendulum objects - however for the sake of simplification the model does assume that all mass of a pendulum is centred at its end, and assumes a frictionless environment. These assumptions were necessary to be able to complete the project within the required time window. It was also assumed that gravity is uniform and constant, and points in the negative z direction.
 
 The differential equations used to construct the update functions used lagrangian mechanics, as it is preferable to newtonian mechanics when dealing with an arbitrary variable phase space. For each pendulum, only the polar angle, the azimuthal angle, and their time derivatives are necessary for constructing differential equations that can describe them.
 
@@ -238,6 +239,14 @@ The core object used is the Pendulum object, which is specified in Pendulum.py. 
 
 The secondary object used is the Chain object, which is specified in Chain.py. It has attributes specifying the Pendulum objects in the chain, and the value of the gravitational acceleration in the system. It has methods for calculating the next state of the system and for fixing the coordinates of the pendulum vectors. There are two methods for calculating the A block element and B block element from the inner products of the partial derivatives of the pendulum vectors with respect to theta, phi or some combination of the two. An additional method calculates the A and B matrices from these block elements. A further method calculates the Vector in the differential matrix equation that accounts for the gravitational acceleration. These class methods are used in a formulation of the RK4 method. See [Design](#design) for more details on the reason for these methods. In addition to this, there are class methods for calculating the cartesian position, velocity, linear momentum, angular momentum, and the kinetic, potential and mechanical energies of each pendulum - which are mostly used for plotting purposes.
 
-These Objects are then used by Simulator.py and Plotter.py to simulate and plot the system. Both reference config.toml for the exact settings used.
+These Objects are then used by Simulator.py and Plotter.py to simulate and plot the system. Both reference config.toml for the exact settings used. With an initial state, and filename, timedelta and number of steps, a system can be simulated for an arbitrary period of time. A smaller timedelta is more likely to avoid innacuracy, however, a smaller timedelta requires more steps for the same time period, and so will generally require more intensive calculation. The attributes of the pendulum objects are specified with an array of tables in the config.toml file. For each tick of the simulation, the chain object at that moment is saved to a list, which is then pickled, along with the timestep. Then during plotting, this list is extracted and processed into all of the potential data streams that are desired to be plotted in the config.toml file. While an animation would be very much possible, as it is not necessary for simulation or testing purposes, the Plotter.py file only has capability to make 2D diagnostic plots of the variable's value over time.
 
+Lastly, testing.py is a simple unit testing file that runs checks to ensure that Chain and Pendulum methods return their expected values. It runs without failing, which means that the Chain and Pendulum objects are built to the design goals. If this project expands to other areas, then this testing file should be expanded to account for that.
 
+## Future Work
+
+While I am relatively satisfied with the program in its current state, there are a few sub-areas that it feels that this program could be expanded to encompass. Firstly, I would like to rework the system such that it could account for mass not centred at the end of the pendulum - initial ideas are a floating point value between 0 and 1 that determines the centre of mass of the pendulum, where 1 places the mass at the end of the pendulum vector. 
+
+Additionally, I would like for there to be a way to account for the possibility of damping on the spherical pendulum joints, and general friction due to viscosity of the medium the system is placed within. I would also like for the system to be able to account for imperfect spherical joints, perhaps with more resistance in some directions, or maybe fully restricted to one particular axis. Further, extending the system to also account for connected spring systems would be interesting, as spring-pendulum systems give some interesting effects. This would require an implementation of non-constant length and hooke's law. Given that the length and angular position are disconnected variables in the Pendulum object, this feels like a possible extension - but it would of course require thorough investigation. 
+
+Lastly, I would like for more complex forces on the system to be accounted for, perhaps a more interesting, or potentially non-constant force field to account for more environmental effects like wind or external movement. This extension of the forces could even potentially implement electromagnetic effects, like the lorentz force; or even implement diamagnetic, paramagnetic, and ferromagnetic materials in the makeup of the pendulum system.
