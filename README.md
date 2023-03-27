@@ -46,9 +46,9 @@ $$ 0 = \sum_{i=j}^N m_i \sum_{k=1}^i \ddot{\theta}_k \frac{\partial \mathbf{p}_k
 
 As each partial derivative, this can be simplified by taking the inner product of the above with both $\partial_{\theta} \mathbf{p}$ and $\partial_{\phi} \mathbf{p}$, which results in the following,
 
-$$ 0 = \sum_{i=j}^N m_i \sum_{k=1}^i \ddot{\theta}_k \frac{\partial \mathbf{p}_k}{\partial \theta_k} \cdot \frac{\partial \mathbf{p}_k}{\partial \theta_k} + \ddot{\phi}_k \frac{\partial \mathbf{p}_k}{\partial \phi_k} \cdot \frac{\partial \mathbf{p}_k}{\partial \theta_k} + \dot{\theta}_k^2 \frac{\partial^2 \mathbf{p}_k}{\partial \theta_k^2} \cdot \frac{\partial \mathbf{p}_k}{\partial \theta_k} + 2 \dot{\theta}_k \dot{\phi}_k \frac{\partial^2 \mathbf{p}_k}{\partial \theta_k \partial \phi_k} \cdot \frac{\partial \mathbf{p}_k}{\partial \theta_k} + \dot{\phi}_k^2 \frac{\partial^2 \mathbf{p}_k}{\partial \phi_k^2} \cdot \frac{\partial \mathbf{p}_k}{\partial \theta_k} - g \hat{k} \cdot \frac{\partial \mathbf{p}_k}{\partial \theta_k} $$
+$$ 0 = \left(\sum_{i=j}^N m_i \sum_{k=1}^i \ddot{\theta}_k \frac{\partial \mathbf{p}_k}{\partial \theta_k} + \ddot{\phi}_k \frac{\partial \mathbf{p}_k}{\partial \phi_k} + \dot{\theta}_k^2 \frac{\partial^2 \mathbf{p}_k}{\partial \theta_k^2} + 2 \dot{\theta}_k \dot{\phi}_k \frac{\partial^2 \mathbf{p}_k}{\partial \theta_k \partial \phi_k} + \dot{\phi}_k^2 \frac{\partial^2 \mathbf{p}_k}{\partial \phi_k^2} - g \hat{k}\right) \cdot \frac{\partial \mathbf{p}_i}{\partial \theta_i} $$
 
-$$ 0 = \sum_{i=j}^N m_i \sum_{k=1}^i \ddot{\theta}_k \frac{\partial \mathbf{p}_k}{\partial \theta_k} \cdot \frac{\partial \mathbf{p}_k}{\partial \phi_k} + \ddot{\phi}_k \frac{\partial \mathbf{p}_k}{\partial \phi_k} \cdot \frac{\partial \mathbf{p}_k}{\partial \phi_k} + \dot{\theta}_k^2 \frac{\partial^2 \mathbf{p}_k}{\partial \theta_k^2} \cdot \frac{\partial \mathbf{p}_k}{\partial \phi_k} + 2 \dot{\theta}_k \dot{\phi}_k \frac{\partial^2 \mathbf{p}_k}{\partial \theta_k \partial \phi_k} \cdot \frac{\partial \mathbf{p}_k}{\partial \phi_k} + \dot{\phi}_k^2 \frac{\partial^2 \mathbf{p}_k}{\partial \phi_k^2} \cdot \frac{\partial \mathbf{p}_k}{\partial \phi_k} - g \hat{k} \cdot \frac{\partial \mathbf{p}_k}{\partial \phi_k} $$
+$$ 0 = \left(\sum_{i=j}^N m_i \sum_{k=1}^i \ddot{\theta}_k \frac{\partial \mathbf{p}_k}{\partial \theta_k}  + \ddot{\phi}_k \frac{\partial \mathbf{p}_k}{\partial \phi_k} + \dot{\theta}_k^2 \frac{\partial^2 \mathbf{p}_k}{\partial \theta_k^2} + 2 \dot{\theta}_k \dot{\phi}_k \frac{\partial^2 \mathbf{p}_k}{\partial \theta_k \partial \phi_k} + \dot{\phi}_k^2 \frac{\partial^2 \mathbf{p}_k}{\partial \phi_k^2} - g \hat{k}\right) \cdot \frac{\partial \mathbf{p}_i}{\partial \phi_i} $$
 
 Which can then be simplified into a matrix equation:
 
@@ -127,5 +127,109 @@ $$B_{ij} =
 \partial_{\theta j}^2\mathbf{p}_j\cdot\partial_{\theta i}\mathbf{p}_i & 2\partial_{\theta j}\partial_{\phi j}\mathbf{p}_j \cdot \partial_{\theta i}\mathbf{p}_i & \partial_{\phi j}^2\mathbf{p}_j\cdot\partial_{\theta i}\mathbf{p}_i \\
 \partial_{\theta j}^2\mathbf{p}_j\cdot\partial_{\phi i}\mathbf{p}_i & 2\partial_{\theta j}\partial_{\phi j}\mathbf{p}_j \cdot \partial_{\phi i}\mathbf{p}_i & \partial_{\phi j}^2\mathbf{p}_j\cdot\partial_{\phi i}\mathbf{p}_i \\
 \end{pmatrix}$$
+
+This matrix equation can then be rearranged to produce,
+
+$$\begin{pmatrix}
+\ddot{\theta}_1 \\
+\ddot{\phi}_1 \\
+\ddot{\theta}_2 \\
+\ddot{\phi}_2 \\
+. \\
+. \\
+. \\
+\ddot{\theta}_N \\
+\ddot{\phi}_N 
+\end{pmatrix} = -A^{-1} \left( B 
+\begin{pmatrix}
+\dot{\theta}_1^2 \\
+2 \dot{\theta}_1 \dot{\phi}_1 \\
+\dot{\phi}_1^2 \\
+\dot{\theta}_2^2 \\
+2 \dot{\theta}_2 \dot{\phi}_2 \\
+\dot{\phi}_2^2 \\
+. \\
+. \\
+. \\
+\dot{\theta}_N^2 \\
+2 \dot{\theta}_N \dot{\phi}_N \\
+\dot{\phi}_N^2
+\end{pmatrix} +
+\begin{pmatrix}
+M_1 g \partial_{\theta 1} z_1\\
+M_1 g \partial_{\phi 1} z_1\\
+M_2 g \partial_{\theta 2} z_2\\
+M_2 g \partial_{\phi 2} z_2\\
+. \\
+. \\
+. \\
+M_N g \partial_{\theta N} z_N\\
+M_N g \partial_{\phi N} z_N
+\end{pmatrix} \right)$$
+
+This can then be used to calculate the next position using multi-variable runge-kutte methods. This requires relabelling the first order time derivative of theta and phi as independent variables to produce the following equations,
+
+$$\begin{pmatrix}
+\dot{\omega}_{\theta 1} \\
+\dot{\omega}_{\phi 1} \\
+\dot{\omega}_{\theta 2} \\
+\dot{\omega}_{\phi 2} \\
+. \\
+. \\
+\dot{\omega}_{\theta N} \\
+\dot{\omega}_{\phi N} 
+\end{pmatrix} = -A^{-1} \left( B 
+\begin{pmatrix}
+\omega_{\theta 1}^2 \\
+2 \omega_{\theta 1} \omega_{\phi 1} \\
+\omega_{\phi 1}^2 \\
+\omega_{\theta 2}^2 \\
+2 \omega_{\theta 2} \omega_{\phi 2} \\
+\omega_{\phi 2}^2 \\
+. \\
+. \\
+. \\
+\omega_{\theta N}^2 \\
+2 \omega_{\theta N} \omega_{\phi N} \\
+\omega_{\phi N}^2 \\
+\end{pmatrix} +
+\begin{pmatrix}
+M_1 g \partial_{\theta 1} z_1\\
+M_1 g \partial_{\phi 1} z_1\\
+M_2 g \partial_{\theta 2} z_2\\
+M_2 g \partial_{\phi 2} z_2\\
+. \\
+. \\
+. \\
+M_N g \partial_{\theta N} z_N\\
+M_N g \partial_{\phi N} z_N
+\end{pmatrix} \right)$$
+
+and,
+
+$$\begin{pmatrix}
+\dot{\theta}_1 \\
+\dot{\phi}_1 \\
+\dot{\theta}_2 \\
+\dot{\phi}_2 \\
+. \\
+. \\
+\dot{\theta}_N \\
+\dot{\phi}_N 
+\end{pmatrix} = 
+\begin{pmatrix}
+\omega_{\theta 1} \\
+\omega_{\phi 1} \\
+\omega_{\theta 2} \\
+\omega_{\phi 2} \\
+. \\
+. \\
+\omega_{\theta N} \\
+\omega_{\phi N} 
+\end{pmatrix}
+
+if these two equations are taken together as $\dot{y} = \f(y)$, then RK4 can be applied.
+
+## Structure
 
 
