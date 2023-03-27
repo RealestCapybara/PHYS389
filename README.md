@@ -26,4 +26,8 @@ The differential equations used to construct the update functions used lagrangia
 
 In order to derive these differential equations, each pendulum was considered as an independent cartesian vector with x, y, and z all considered functions of the length of the pendulum, and the polar and azimuthal angles. However, as the length is constant in the case of an ideal pendulum, only the polar and azimuthal angles need to be considered - which helpfully reduces the number of independent variables necessary to consider. Considering each pendulum as an independent vector then, the lagrangian can be constructed as:
 
-$$L = \frac{1}{2} \sum_{i=1}^{N} m_i \left( \sum_{j=1}^{i} \dot{p}_j \right)^2 + g \sum_{i=1}^N m_i \left(\sum_{j=1}^i z_j\right)$$
+$$L = \frac{1}{2} \sum_{i=1}^{N} m_i \left( \sum_{j=1}^{i} \mathbf{\dot{p}}_j \right)^2 + g \sum_{i=1}^N m_i \left(\sum_{j=1}^i z_j\right)$$
+
+Where $\mathbf{\dot{p}}_j$ are the time derivatives of the pendulum vectors, and $z_j$ are the cartesian z-components of the pendulum vectors, and $m_i$ are the masses of each pendulum. From this, the lagrangian equations can be derived:
+
+$$\frac{\partial L}{\partial \mathbf{p_j}} = \begin{pmatrix} 0\\ 0\\ -g \sum_{i=j}^N m_i \end{pmatrix}$$
