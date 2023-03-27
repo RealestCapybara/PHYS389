@@ -36,6 +36,8 @@ $$\frac{\partial L}{\partial \mathbf{p}_j} = -g \sum_{i=j}^N
 m_i 
 \end{pmatrix}$$
 
-$$\frac{\partial L}{\partial \mathbf{\dot{p}}_j} = \sum_{i=j}^N m_i \sum_{k=1}^i \mathbf{\dot{p}}_k = \sum_{i=j}^N m_i \sum_{k=1}^i \theta_k \frac{\partial \mathbf{\dot{p}}_j}{\partial \theta_k} + \phi_k \frac{\partial \mathbf{\dot{p}}_j}{\partial \phi_k}$$
+$$\frac{\partial L}{\partial \mathbf{\dot{p}}_j} = \sum_{i=j}^N m_i \sum_{k=1}^i \mathbf{\dot{p}}_k = \sum_{i=j}^N m_i \sum_{k=1}^i \dot{\theta}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \theta_k} + \dot{\phi}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \phi_k}$$
 
+Thus,
 
+$$\frac{d}{dt} \frac{\partial L}{\partial \mathbf{\dot{p}}_j} = \sum_{i=j}^N m_i \sum_{k=1}^i \ddot{\theta}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \theta_k} + \ddot{\phi}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \phi_k} + \dot{\theta}_k^2 \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \theta_k^2} + \dot{\phi}_k^2 \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \phi_k^2} + 2 \dot{\theta}_k \dot{\phi}_k \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \theta_k \partial \phi_k}$$
