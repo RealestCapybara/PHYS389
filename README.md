@@ -226,7 +226,7 @@ $$\begin{pmatrix}
 . \\
 \omega_{\theta N} \\
 \omega_{\phi N} 
-\end{pmatrix}
+\end{pmatrix}$$
 
 if these two equations are taken together as $\dot{y} = \f(y)$, then RK4 can be applied.
 
