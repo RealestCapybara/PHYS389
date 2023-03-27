@@ -7,9 +7,10 @@ I was intesrested in modelling chaotic systems, and a simple case for this is th
 ## Table of Contents
 
 - [Usage](#usage)
-- [Design](#design)
+- [Mathematics and Design](#mathematics-and-design)
 - [Structure](#structure)
-- [Future Work](#future work)
+- [Future Work](#future-work)
+- [Licence](#licence)
 
 ## Usage
 
@@ -19,7 +20,9 @@ The system.sim table has three system-wide varables, g, the gravitational accele
 
 The system.plot table just contains boolean values and lists of boolean values. Each bool can be set to true or false to plot the associated value on a value over time plot. For example 'x' controls whether the cartesian positions of the pendula will be plotted, with the first bool controlling the x-values, the sec ond bool the y-values, and the third controlling the z-values. While most variables are variables associated with each pendulum, there are a few variables, namely totalLM (total linear momentum), totalAM (total angular momentum), absTotalLM (absolute total linear momentum), absTotalAM (absolute total angular momentum), totalKE (total kinetic energy), totalPE (total potential energy), and totalME (total mechanical energy), that are variables of the total system.
 
-## Design
+## Mathematics and Design
+
+All of the following derivation was developed with reference to [Double pendulum](https://www.math.kyoto-u.ac.jp/~inou/preprint/doublependulum.pdf) by Hiroyuki Inou.
 
 The resulting system can simulate and plot any number of arbitrarily oriented connected pendulum objects - however for the sake of simplification the model does assume that all mass of a pendulum is centred at its end, and assumes a frictionless environment. These assumptions were necessary to be able to complete the project within the required time window. It was also assumed that gravity is uniform and constant, and points in the negative z direction.
 
@@ -250,3 +253,15 @@ While I am relatively satisfied with the program in its current state, there are
 Additionally, I would like for there to be a way to account for the possibility of damping on the spherical pendulum joints, and general friction due to viscosity of the medium the system is placed within. I would also like for the system to be able to account for imperfect spherical joints, perhaps with more resistance in some directions, or maybe fully restricted to one particular axis. Further, extending the system to also account for connected spring systems would be interesting, as spring-pendulum systems give some interesting effects. This would require an implementation of non-constant length and hooke's law. Given that the length and angular position are disconnected variables in the Pendulum object, this feels like a possible extension - but it would of course require thorough investigation. 
 
 Lastly, I would like for more complex forces on the system to be accounted for, perhaps a more interesting, or potentially non-constant force field to account for more environmental effects like wind or external movement. This extension of the forces could even potentially implement electromagnetic effects, like the lorentz force; or even implement diamagnetic, paramagnetic, and ferromagnetic materials in the makeup of the pendulum system.
+
+## Licence
+
+### The MIT License (MIT)
+
+Copyright © 2023 Owen Wray
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
