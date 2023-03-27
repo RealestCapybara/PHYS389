@@ -40,4 +40,8 @@ $$\frac{\partial L}{\partial \mathbf{\dot{p}}_j} = \sum_{i=j}^N m_i \sum_{k=1}^i
 
 Thus,
 
-$$\frac{d}{dt} \frac{\partial L}{\partial \mathbf{\dot{p}}_j} = \sum_{i=j}^N m_i \sum_{k=1}^i \ddot{\theta}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \theta_k} + \ddot{\phi}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \phi_k} + \dot{\theta}_k^2 \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \theta_k^2} + \dot{\phi}_k^2 \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \phi_k^2} + 2 \dot{\theta}_k \dot{\phi}_k \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \theta_k \partial \phi_k}$$
+$$\frac{d}{dt} \frac{\partial L}{\partial \mathbf{\dot{p}}_j} = \sum_{i=j}^N m_i \sum_{k=1}^i \ddot{\theta}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \theta_k} + \ddot{\phi}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \phi_k} + \dot{\theta}_k^2 \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \theta_k^2} + 2 \dot{\theta}_k \dot{\phi}_k \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \theta_k \partial \phi_k} + \dot{\phi}_k^2 \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \phi_k^2} $$
+
+$$ 0 = \sum_{i=j}^N m_i \sum_{k=1}^i \ddot{\theta}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \theta_k} + \ddot{\phi}_k \frac{\partial \mathbf{\dot{p}}_k}{\partial \phi_k} + \dot{\theta}_k^2 \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \theta_k^2} + 2 \dot{\theta}_k \dot{\phi}_k \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \theta_k \partial \phi_k} + \dot{\phi}_k^2 \frac{\partial^2 \mathbf{\dot{p}}_k}{\partial \phi_k^2} - g \hat{k}$$
+
+
