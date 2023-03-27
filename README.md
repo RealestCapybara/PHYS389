@@ -30,8 +30,12 @@ $$L = \frac{1}{2} \sum_{i=1}^{N} m_i \left( \sum_{j=1}^{i} \mathbf{\dot{p}}_j \r
 
 Where $\mathbf{\dot{p}}_j$ are the time derivatives of the pendulum vectors, and $z_j$ are the cartesian z-components of the pendulum vectors, and $m_i$ are the masses of each pendulum. From this, the lagrangian equations can be derived:
 
-$$\frac{\partial L}{\partial \mathbf{p_j}} = \sum_{i=j}^N 
+$$\frac{\partial L}{\partial \mathbf{p}_j} = -g \sum_{i=j}^N 
 \begin{pmatrix} 0 \\
 0\\
--g m_i 
+m_i 
 \end{pmatrix}$$
+
+$$\frac{\partial L}{\partial \mathbf{\dot{p}}_j} = \sum_{i=j}^N m_i \sum_{k=1}^i \mathbf{\dot{p}}_k = \sum_{i=j}^N m_i \sum_{k=1}^i \theta_k \frac{\partial \mathbf{\dot{p}}_j}{\partial \theta_k} + \phi_k \frac{\partial \mathbf{\dot{p}}_j}{\partial \phi_k}$$
+
+
