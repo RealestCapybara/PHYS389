@@ -1,7 +1,7 @@
 import numpy as np
 from Pendulum import Pendulum
 from Chain import Chain
-import tomllib as toml
+import tomli as toml
 import pickle
 from tqdm import tqdm
 from copy import deepcopy

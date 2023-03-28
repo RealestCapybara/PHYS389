@@ -3,7 +3,7 @@ from Chain import Chain
 from Pendulum import Pendulum
 import matplotlib.pyplot as plt
 import pickle
-import tomllib as toml
+import tomli as toml
 from operator import itemgetter
 
 
