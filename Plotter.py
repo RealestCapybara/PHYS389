@@ -181,7 +181,7 @@ def plotValues(data):
     #file) the first key list are values for each pendulum
     pkeyList = ['x', 'y', 'z', 'vx', 'vy', 'vz', 'theta', 'phi', 'thetadot',
                'phidot', 'whichPole', 'KE', 'PE', 'ME', 'LMx', 'AMx', 'LMy',
-               'AMy', 'LMz', 'AMz', 'absLM', 'absAM']
+               'AMy', 'LMz', 'AMz', 'absLM', 'absAM', 'whichPole']
     #the second list of keys are values of the entire system
     sysKeyList = ['totalKE', 'totalPE', 'totalME',  'totalLMx', 'totalAMx',
                   'totalLMy', 'totalAMy', 'totalLMz', 'totalAMz', 'absTotalLM',
@@ -235,6 +235,8 @@ def plotValues(data):
             FrameDict[f'phi{i}'].append(p.pos[1])
             FrameDict[f'thetadot{i}'].append(p.vel[0])
             FrameDict[f'phidot{i}'].append(p.vel[1])
+
+            FrameDict[f'whichPole{i}'].append((lambda v: 10 if v else -10)(p.zPolar))
 
         FrameDict['totalKE'].append(sum(KE))
         FrameDict['totalPE'].append(sum(PE))
@@ -319,7 +321,6 @@ if __name__ == "__main__":
     dictionary = plotValues(data)
     dictionary = filterDiagnosticData(dictionary, settings)
     for key, value in dictionary.items():
-        print(key)
         plt.plot(t, value, label=key)
     plt.legend()
     plt.show()

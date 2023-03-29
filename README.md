@@ -4,13 +4,22 @@
 
 This is software that can take an arbitrary connected chain of pendula in 3D, and simulate their movement over time, and also make diagnostic plots of the resulting simulation. I was intesrested in modelling chaotic systems, and a simple case for this is the connected double pendulum. I was interested in expanding this further and simulating any number of connected pendula in 3D, as a test of my abilities.
 
+Full repository [here](https://github.com/RealestCapybara/PHYS389)
+
 ## Table of Contents
 
+- [Installation](#installation)
 - [Usage](#usage)
 - [Mathematics and Design](#mathematics-and-design)
 - [Structure](#structure)
 - [Future Work](#future-work)
 - [Licence](#licence)
+
+## Installation
+
+The program mostly works as-is. However, there are some dependencies.
+
+`Chain.py`, `Pendulum.py` and `testing.py` rely on [`numpy`](https://pypi.org/project/numpy/). The `Plotter.py` and `Simulator.py` files rely on [`tomli`](https://pypi.org/project/tomli/) in order to process `config.toml`. Additionally, `Plotter.py` also relies on [`matplotlib`](https://pypi.org/project/matplotlib/), and `Simulator.py` relies on [`tqdm`](https://pypi.org/project/tqdm/) in order to create a progress meter.
 
 ## Usage
 
@@ -32,7 +41,7 @@ In order to derive these differential equations, each pendulum was considered as
 
 Considering each pendulum as an independent vector then, the lagrangian can be constructed as:
 
-$$L = \frac{1}{2} \sum_{i=1}^{N} m_i \left( \sum_{j=1}^{i} \mathbf{\dot{p}}_j \right)^2 + g \sum_{i=1}^N m_i \left(\sum_{j=1}^i z_j\right)$$
+$$L = \frac{1}{2} \sum_{i=1}^{N} m_i \left( \sum_{j=1}^{i} \mathbf{\dot{p}}_j \right)^2 - g \sum_{i=1}^N m_i \left(\sum_{j=1}^i z_j\right)$$
 
 Where $\mathbf{\dot{p}}_j$ are the time derivatives of the pendulum vectors, and $z_j$ are the cartesian z-components of the pendulum vectors, and $m_i$ are the masses of each pendulum. From this, the lagrangian equations can be derived:
 

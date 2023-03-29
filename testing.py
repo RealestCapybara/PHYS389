@@ -5,7 +5,6 @@ from numpy.testing import assert_array_almost_equal as arrayAlmostEqual
 from numpy.testing import assert_array_equal as arrayEqual
 import unittest
 import random as r
-from random import random as rand
 from copy import deepcopy
 
 class TestPendulumMethods(unittest.TestCase):

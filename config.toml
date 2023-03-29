@@ -1,17 +1,16 @@
 [system]
 # filename to save to and load from
-filename="noGravityOnePendulum"
+filename="smallPhiVelocity"
 
 # simulation settings
 [system.sim]
-# gravitational constant
-g=0
+# gravitational constant (positive is default)
+g=9.81
 # timestep
 timedelta=0.01
 # number of iterations
-steps=8000
+steps=10000
 
-    
     # add one [[system.sim.pendula]] for each pendula desired.
 
     # length: pendulum length in metres
@@ -30,10 +29,9 @@ steps=8000
     mass=1
     theta=[0.1,"p"]
     phi=[0,"r"]
-    thetadot=[2,"r"]
-    phidot=[3,"r"]
+    thetadot=[0.9904544412,"r"]
+    phidot=[0,"r"]
     zPole=true
-
 
 # Plotting settings
 [system.plot]
@@ -54,7 +52,7 @@ ME = false
 # total kinetic, potential, and mechanical energy for the entire system
 totalKE = false
 totalPE = false
-totalME = false
+totalME = true
 # cartesian linear momentum and angular momentum for each pendulum
 LM = [false, false, false]
 AM = [false, false, false]
@@ -66,6 +64,6 @@ totalLM = [false, false, false]
 totalAM = [false, false, false]
 # magnitude of the total linear momentum and angular momentum of
 # the entire system
-absTotalLM = true
-absTotalAM = true
+absTotalLM = false
+absTotalAM = false
 
